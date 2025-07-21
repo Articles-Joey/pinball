@@ -1,0 +1,166 @@
+@use "@/styles/components/global.scss" as *;
+
+.pinball-game-page {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    min-height: calc(100vh - 50px);
+    // padding: 1rem;
+
+    --top-position: 50px;
+
+    @include media-breakpoint-up(lg) {
+        flex-direction: row;
+        align-items: center;
+        // background-color: rgb(160, 120, 73);
+    }
+
+    &.fullscreen {
+        --top-position: 0px;
+    }
+
+    .menu-bar {
+        height: 50px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--card-background);
+        z-index: 2;
+
+        @include media-breakpoint-up(lg) {
+            display: none;
+        }
+    }
+
+    .background {
+        // background-repeat: repeat;
+        // opacity: 0.25;
+        background-size: cover;
+        // background-size: 500px;
+        background-position: center;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        // filter: blur(10px);
+    }
+
+    .menu-card {
+        @include media-breakpoint-down(lg) {
+            display: flex;
+            position: fixed;
+            width: 100%;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            top: var(--top-position);
+            left: 0;
+            transform: translateX(-100%);
+            transition-duration: 200ms;
+            z-index: 10;
+            flex-direction: column;
+            background-color: var(--card-background-75);
+        }
+
+        @include media-breakpoint-up(lg) {
+        }
+
+        &.show {
+            transform: translateX(0%);
+        }
+
+        @include media-breakpoint-up(lg) {
+            display: initial;
+            // position: fixed;
+            // bottom: 0;
+            // left: 0;
+            // top: 50px;
+            flex-shrink: 0;
+            width: 300px;
+            padding: 1rem;
+            font-size: 0.8rem;
+            height: calc(100vh - var(--top-position));
+        }
+
+        .camera-controls {
+            display: grid;
+            grid-gap: 5px 5px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    }
+
+    .game-content {
+        z-index: 1;
+
+        // width: calc(100% - 300px);
+        width: 100%;
+
+        // position: absolute;
+        // left: 0;
+        // top: 0;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        position: relative;
+        height: calc(100vh - var(--top-position));
+        margin-right: 1rem;
+
+        @include media-breakpoint-up(lg) {
+            height: calc(100vh - var(--top-position));
+        }
+
+        .canvas-three-wrap {
+            border: 1px solid #000;
+            background-color: white;
+            // margin-bottom: 3rem;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+    
+            canvas {
+                height: 100%;
+                width: 100%;
+            }
+
+            .floating-ui {
+                position: absolute;
+                width: 100%;
+                top: 0rem;
+                z-index: 2;
+                display: flex;
+                justify-content: space-between;
+
+                .left {
+                    margin: 0.75rem;
+
+                    .map {
+                        width: 150px;
+                        height: 150px;
+                        background-color: rgba(0, 0, 0, 0.25);
+                    }
+                }
+            }
+        }
+
+    }
+
+    .ad-wrap {
+        display: none;
+
+        @include media-breakpoint-up(lg) {
+            display: block;
+        }
+    }
+    
+}

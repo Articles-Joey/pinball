@@ -1,0 +1,91 @@
+@use "@/styles/components/global.scss" as *;
+
+.pinball-landing-page {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: calc(100vh - 100px);
+
+    @include media-breakpoint-up(lg) {
+        flex-direction: row;
+    }
+
+    .background {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .background-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background-color: rgba(0, 0, 0, 0.75);
+    }
+
+    .servers {
+        display: grid;
+        grid-gap: 5px 5px;
+        grid-template-columns: repeat(2, 1fr);
+        max-height: 600px;
+        overflow-y: scroll;
+
+        .server {
+            // margin: 0.5rem;
+            padding: 0.5rem;
+            // width: calc(50% - 1rem);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+    }
+
+    .scoreboard {
+        margin-top: 1rem;
+        max-width: 300px;
+        width: 100%;
+        margin-bottom: 1rem;
+
+        @include media-breakpoint-up(lg) {
+            margin-top: 0rem;
+            margin-bottom: 0rem;
+            display: block;
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    }
+
+    .ad-wrap {
+        margin-top: 1rem;
+
+        @include media-breakpoint-up(lg) {
+            margin-top: 0rem;
+            display: block;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    }
+
+    .background-wrap {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+
+        img {
+            // backdrop-filter: blur(8px);
+            filter: blur(2px);
+        }
+    }
+}
