@@ -6,10 +6,19 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    min-height: calc(100vh - 100px);
+    min-height: calc(100vh - 0px);
 
     @include media-breakpoint-up(lg) {
         flex-direction: row;
+    }
+
+    .landing-scene-canvas-wrapper {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
     }
 
     .background {
@@ -17,6 +26,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        z-index: -1;
     }
 
     .background-overlay {
@@ -25,6 +35,7 @@
         height: 100%;
         object-fit: cover;
         background-color: rgba(0, 0, 0, 0.75);
+        z-index: -1;
     }
 
     .servers {

@@ -73,44 +73,17 @@ export default function FourFrogsSettingsModal({
                             <div>
                                 {[
                                     {
-                                        action: 'Move Up',
-                                        defaultKeyboardKey: 'W'
+                                        action: 'Left Paddle',
+                                        defaultKeyboardKey: 'A '
                                     },
                                     {
-                                        action: 'Move Down',
-                                        defaultKeyboardKey: 'S'
+                                        action: 'Right Paddle',
+                                        defaultKeyboardKey: 'D '
                                     },
                                     {
-                                        action: 'Move Left',
-                                        defaultKeyboardKey: 'A'
-                                    },
-                                    {
-                                        action: 'Move Right',
-                                        defaultKeyboardKey: 'D'
-                                    },
-                                    {
-                                        action: 'Drop Insect',
+                                        action: 'Launch Ball',
                                         defaultKeyboardKey: 'Space'
                                     },
-                                    {
-                                        action: 'Stop Powerup',
-                                        defaultKeyboardKey: 'ArrowDown'
-                                    },
-                                    {
-                                        emote: true,
-                                        action: 'Stick out Tongue',
-                                        defaultKeyboardKey: 'ArrowDown'
-                                    },
-                                    {
-                                        emote: true,
-                                        action: 'Rotate Left',
-                                        defaultKeyboardKey: 'ArrowLeft'
-                                    },
-                                    {
-                                        emote: true,
-                                        action: 'Rotate Right',
-                                        defaultKeyboardKey: 'ArrowRight'
-                                    }
                                 ].map(obj =>
                                     <div key={obj.action}>
                                         <div className="flex-header border-bottom pb-1 mb-1">
@@ -122,7 +95,7 @@ export default function FourFrogsSettingsModal({
 
                                             <div>
 
-                                                <div className="badge badge-hover bg-articles me-1">{obj.defaultKeyboardKey}</div>
+                                                <div className="badge badge-hover bg-dark me-1">{obj.defaultKeyboardKey}</div>
 
                                                 <ArticlesButton 
                                                     className=""

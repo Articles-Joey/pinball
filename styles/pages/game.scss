@@ -6,10 +6,10 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    min-height: calc(100vh - 50px);
+    min-height: calc(100vh - 0px);
     // padding: 1rem;
 
-    --top-position: 50px;
+    --top-position: 0px;
 
     @include media-breakpoint-up(lg) {
         flex-direction: row;

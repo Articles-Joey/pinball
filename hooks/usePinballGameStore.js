@@ -1,109 +1,132 @@
 // import { create } from 'zustand'
 import { createWithEqualityFn as create } from 'zustand/traditional'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import theme from '@/theme'
 
-const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem(key))
-const setLocalStorage = (key, value) => window.localStorage.setItem(key, JSON.stringify(value))
+// const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem(key))
+// const setLocalStorage = (key, value) => window.localStorage.setItem(key, JSON.stringify(value))
 
-export const usePinballGameStore = create((set) => ({
+export const usePinballGameStore = create()(
+    persist(
+        (set, get) => ({
 
-    machine: 'USA Pinball',
-    setMachine: (newValue) => {
-        set((prev) => ({
-            machine: newValue
-        }))
-    },
+            theme: "Dark",
+            toggleTheme: () => {
+                const newTheme = get().theme == "Dark" ? "Light" : "Dark"
+                set((prev) => ({
+                    theme: newTheme
+                }))
+            },
+            setTheme: (newValue) => {
+                set((prev) => ({
+                    theme: newValue
+                }))
+            },
 
-    score: 0,
-    setScore: (newValue) => {
-        set((prev) => ({
-            score: newValue
-        }))
-    },
-    addScore: (newValue) => {
-        set((prev) => ({
-            score: (prev.score + newValue)
-        }))
-    },
+            machine: 'USA Pinball',
+            setMachine: (newValue) => {
+                set((prev) => ({
+                    machine: newValue
+                }))
+            },
 
-    rightPaddle: false,
-    setRightPaddle: (newValue) => {
-        set((prev) => ({
-            rightPaddle: newValue
-        }))
-    },
+            score: 0,
+            setScore: (newValue) => {
+                set((prev) => ({
+                    score: newValue
+                }))
+            },
+            addScore: (newValue) => {
+                set((prev) => ({
+                    score: (prev.score + newValue)
+                }))
+            },
 
-    leftPaddle: false,
-    setLeftPaddle: (newValue) => {
-        set((prev) => ({
-            leftPaddle: newValue
-        }))
-    },
+            rightPaddle: false,
+            setRightPaddle: (newValue) => {
+                set((prev) => ({
+                    rightPaddle: newValue
+                }))
+            },
 
-    spring: false,
-    setSpring: (newValue) => {
-        set((prev) => ({
-            spring: newValue
-        }))
-    },
+            leftPaddle: false,
+            setLeftPaddle: (newValue) => {
+                set((prev) => ({
+                    leftPaddle: newValue
+                }))
+            },
 
-    ballsLeft: 2,
-    setBallsLeft: (newValue) => {
-        set((prev) => ({
-            ballsLeft: newValue
-        }))
-    },
-    removeBall: (newValue) => {
-        set((prev) => {
+            spring: false,
+            setSpring: (newValue) => {
+                set((prev) => ({
+                    spring: newValue
+                }))
+            },
 
-            console.log("Test", prev.ballsLeft)
+            ballsLeft: 2,
+            setBallsLeft: (newValue) => {
+                set((prev) => ({
+                    ballsLeft: newValue
+                }))
+            },
+            removeBall: (newValue) => {
+                set((prev) => {
 
-            if (prev.ballsLeft <= 0 && prev.score > 0) {
-                setLocalStorage('game:pinball:recentGames', [
-                    ...prev.recentGames,
-                    {
-                        score: prev.score,
-                        machine: prev.machine,
-                        date: new Date,
+                    console.log("Test", prev.ballsLeft)
+
+                    if (prev.ballsLeft <= 0 && prev.score > 0) {
+                        // setLocalStorage('game:pinball:recentGames', [
+                        //     ...prev.recentGames,
+                        //     {
+                        //         score: prev.score,
+                        //         machine: prev.machine,
+                        //         date: new Date,
+                        //     }
+                        // ])
                     }
-                ])
-            }
 
-            return ({
-                ballsLeft: (prev.ballsLeft - 1),
-                ...(prev.ballsLeft <= 0 && {
+                    return ({
+                        ballsLeft: (prev.ballsLeft - 1),
+                        ...(prev.ballsLeft <= 0 && {
 
-                    ...(prev.score > 0 && {
-                        recentGames: [
-                            ...prev.recentGames,
-                            {
-                                score: prev.score,
-                                machine: prev.machine,
-                                date: new Date,
-                            }
-                        ]
-                    }),
+                            ...(prev.score > 0 && {
+                                recentGames: [
+                                    ...prev.recentGames,
+                                    {
+                                        score: prev.score,
+                                        machine: prev.machine,
+                                        date: new Date,
+                                    }
+                                ]
+                            }),
 
-                    score: 0,
-                    ballsLeft: 2,
-                }),
-            })
-        })
-    },
+                            score: 0,
+                            ballsLeft: 2,
+                        }),
+                    })
+                })
+            },
 
-    recentGames: getLocalStorage('game:pinball:recentGames') || [],
-    setRecentGames: (newValue) => {
-        set((prev) => ({
-            recentGames: newValue
-        }))
-        setLocalStorage('game:pinball:recentGames', newValue)
-    },
-    addRecentGame: (newValue) => {
-        set((prev) => ({
-            recentGames: [
-                ...prev.recentGames,
-                newValue
-            ]
-        }))
-    },
+            recentGames: [],
+            setRecentGames: (newValue) => {
+                set((prev) => ({
+                    recentGames: newValue
+                }))
+                // setLocalStorage('game:pinball:recentGames', newValue)
+            },
+            addRecentGame: (newValue) => {
+                set((prev) => ({
+                    recentGames: [
+                        ...prev.recentGames,
+                        newValue
+                    ]
+                }))
+            },
 
-}))
+        }),
+        {
+            name: 'pinball-storage', // name of the item in the storage (must be unique)
+            //   storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+        },
+    ),
+)

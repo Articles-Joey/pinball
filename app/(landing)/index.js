@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 
 // import axios from 'axios'
@@ -33,6 +33,18 @@ const InfoModal = dynamic(
     { ssr: false }
 )
 
+const CreditsModal = dynamic(
+    () => import('@/components/UI/CreditsModal'),
+    { ssr: false }
+)
+
+// import LandingSceneCanvas from '@/components/Game/LandingSceneCanvas';
+const LandingSceneCanvas = lazy(() => import('@/components/Game/LandingSceneCanvas'));
+// const LandingSceneCanvas = dynamic(
+//     () => import('@/components/Game/LandingSceneCanvas'),
+//     { ssr: false }
+// )
+
 const pinballMachines = [
     {
         name: 'USA Pinball',
@@ -63,6 +75,11 @@ const pinballMachines = [
 
 export default function PinballLandingPage(props) {
 
+    const theme = usePinballGameStore(state => state.theme);
+    const toggleTheme = usePinballGameStore(state => state.toggleTheme);
+    const machine = usePinballGameStore(state => state.machine);
+    const setMachine = usePinballGameStore(state => state.setMachine);
+
     const { isFullscreen, requestFullscreen, exitFullscreen } = useFullscreen();
 
     // const userReduxState = useSelector((state) => state.auth.user_details)
@@ -71,12 +88,8 @@ export default function PinballLandingPage(props) {
     const [nickname, setNickname] = useLocalStorageNew("game:nickname", userReduxState.display_name)
 
     const [showInfoModal, setShowInfoModal] = useState(false)
+    const [showCreditsModal, setShowCreditsModal] = useState(false)
     const [showSettingsModal, setShowSettingsModal] = useState(false)
-
-    const {
-        machine,
-        setMachine
-    } = usePinballGameStore()
 
     const activeMachine = useMemo(() => {
 
@@ -94,6 +107,13 @@ export default function PinballLandingPage(props) {
                 />
             }
 
+            {showCreditsModal &&
+                <CreditsModal
+                    show={showCreditsModal}
+                    setShow={setShowCreditsModal}
+                />
+            }
+
             {showSettingsModal &&
                 <SettingsModal
                     show={showSettingsModal}
@@ -101,16 +121,20 @@ export default function PinballLandingPage(props) {
                 />
             }
 
+            <div className='landing-scene-canvas-wrapper'>
+                <LandingSceneCanvas />
+            </div>
+
             <img src={`${process.env.NEXT_PUBLIC_CDN}games/Pinball/pinball-landing-background.webp`} alt="" className="background" />
 
             <div className="background-overlay">
-                
+
             </div>
 
-            <GameScoreboard
+            {/* <GameScoreboard
                 game="Pinball"
                 machine={machine}
-            />
+            /> */}
 
             <div className="container d-flex justify-content-center align-items-stretch">
 
@@ -225,7 +249,7 @@ export default function PinballLandingPage(props) {
                                             <ArticlesButton
                                                 className="w-100"
                                                 small
-                                                // disabled={obj.name !== "USA Pinball"}
+                                            // disabled={obj.name !== "USA Pinball"}
                                             >
                                                 Play
                                             </ArticlesButton>
@@ -265,7 +289,12 @@ export default function PinballLandingPage(props) {
                             Rules & Controls
                         </ArticlesButton>
 
-                        <Link href={'/'} className='w-50'>
+                        <Link
+                            href={'https://github.com/Articles-Joey/pinball'}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='w-50'
+                        >
                             <ArticlesButton
                                 className={`w-100`}
                                 small
@@ -273,8 +302,8 @@ export default function PinballLandingPage(props) {
 
                                 }}
                             >
-                                <i className="fad fa-sign-out fa-rotate-180"></i>
-                                Leave Game
+                                <i className="fab fa-github"></i>
+                                Github
                             </ArticlesButton>
                         </Link>
 
@@ -282,13 +311,22 @@ export default function PinballLandingPage(props) {
                             className={`w-50`}
                             small
                             onClick={() => {
-                                // setShowInfoModal({
-                                //     game: game_name
-                                // })
+                                setShowCreditsModal(true)
                             }}
                         >
                             <i className="fad fa-users"></i>
                             Credits
+                        </ArticlesButton>
+
+                         <ArticlesButton
+                            className={`w-50 mt-3`}
+                            small
+                            onClick={() => {
+                                toggleTheme()
+                            }}
+                        >
+                            <i className="fad fa-eye-dropper"></i>
+                            Theme: {theme}
                         </ArticlesButton>
 
                     </div>
