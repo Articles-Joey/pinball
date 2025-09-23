@@ -12,6 +12,12 @@
         flex-direction: row;
     }
 
+    &.fullscreen {
+        .ui-content {
+            display: none!important;
+        }
+    }
+
     .landing-scene-canvas-wrapper {
         position: fixed;
         left: 0;

@@ -1,5 +1,7 @@
 # Pinball
 
+![Game Preview](/public/img/game-preview.webp)
+
 Play pinball machines in the browser powered by React.js and Three.js!
 
 ## Getting Started
@@ -12,7 +14,7 @@ npm run dev
 
 ## Multiplayer
 
-Aiming to have multiplayer via P2P and Websockets. Websocket backend code is not in this repo or available at this time. P2P code will be included here.
+Aiming to have some multiplayer machines via P2P eventually.
 
 ## Attributions
 

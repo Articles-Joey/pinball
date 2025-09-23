@@ -98,7 +98,7 @@ export default function PinballLandingPage(props) {
     }, [machine])
 
     return (
-        <div className='pinball-landing-page'>
+        <div className={`pinball-landing-page ${isFullscreen ? 'fullscreen' : ''}`} id='pinball-landing-page'>
 
             {showInfoModal &&
                 <InfoModal
@@ -136,7 +136,7 @@ export default function PinballLandingPage(props) {
                 machine={machine}
             /> */}
 
-            <div className="container d-flex justify-content-center align-items-stretch">
+            <div className="ui-content container d-flex justify-content-center align-items-stretch">
 
                 <div
                     className="card card-articles card-sm"
@@ -327,6 +327,17 @@ export default function PinballLandingPage(props) {
                         >
                             <i className="fad fa-eye-dropper"></i>
                             Theme: {theme}
+                        </ArticlesButton>
+
+                        <ArticlesButton
+                            className={`w-50 mt-3`}
+                            small
+                            onClick={() => {
+                                requestFullscreen('pinball-landing-page')
+                            }}
+                        >
+                            <i className="fad fa-eye-dropper"></i>
+                            Wallpaper Mode
                         </ArticlesButton>
 
                     </div>
