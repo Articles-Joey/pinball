@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useLocalStorageNew } from '@/hooks/useLocalStorageNew';
 // import { useSelector } from 'react-redux';
 import { usePinballGameStore } from '@/hooks/usePinballGameStore';
+import MachinePreviewCanvas from '@/components/Game/MachinePreviewCanvas';
 
 const SettingsModal = dynamic(
     () => import('@/components/UI/SettingsModal'),
@@ -140,7 +141,7 @@ export default function PinballLandingPage(props) {
 
                 <div
                     className="card card-articles card-sm"
-                    style={{ "width": "20rem" }}
+                    style={{ "width": "30rem" }}
                 >
 
                     {/* <div style={{ position: 'relative', height: '200px' }}>
@@ -371,15 +372,21 @@ export default function PinballLandingPage(props) {
                     </div>
 
                     <div className="card-body h-100">
-                        <div className="bg-black p-2 h-100">
-                            {activeMachine?.machine_preview &&
+                        <div className="machine-preview-container bg-black p-2 h-100">
+
+                            <MachinePreviewCanvas 
+                                key={machine}
+                            />
+
+                            {/* {activeMachine?.machine_preview &&
                                 <img
                                     src={activeMachine.machine_preview}
                                     style={{ objectFit: 'cover' }}
                                     className='w-100 h-100'
                                     alt=""
                                 />
-                            }
+                            } */}
+
                         </div>
                     </div>
 

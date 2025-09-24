@@ -17,6 +17,7 @@ import { StoreModelH3H3MeatMountain } from "@/components/Models/H3/MeatMountain"
 import LowPolyPinballMachine from "@/components/Models/LowPolyPinballMachine"
 
 import { useHotkeys } from 'react-hotkeys-hook';
+import { ModelSciFiWoman } from "../Models/SciFi"
 
 
 const SLIDE_COUNT = 30;
@@ -25,6 +26,12 @@ const SLIDE_START = 0;
 const SLIDE_END = SLIDE_WIDTH * SLIDE_COUNT;
 
 function SlidingPinballMachines() {
+
+    // Precompute random booleans for each slot, so they don't change every frame
+    const womanPresent = useMemo(
+        () => Array.from({ length: SLIDE_COUNT }, () => Math.random() < 0.5),
+        []
+    );
 
     const [positions, setPositions] = useState(() => Array.from({ length: SLIDE_COUNT }, (_, i) => SLIDE_WIDTH * i));
     const groupRef = useRef();
@@ -51,6 +58,12 @@ function SlidingPinballMachines() {
                     />
 
                     <WallAndFloor />
+
+                    {womanPresent[i] && <ModelSciFiWoman
+                        position={[0, 0, 1.3]}
+                        rotation={[0, degToRad(180), 0]}
+                        randomAnimation
+                    />}
 
                 </group>
             ))}
@@ -150,7 +163,7 @@ const LandingSceneCanvas = () => {
                 scale={0.1}
             /> */}
 
-            <ambientLight intensity={0.1} />
+            <ambientLight intensity={0.2} />
             {/* <directionalLight position={[10, 10, 5]} intensity={10}
                 castShadow
                 shadow-mapSize-width={1024}

@@ -47,7 +47,7 @@
     .servers {
         display: grid;
         grid-gap: 5px 5px;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         max-height: 600px;
         overflow-y: scroll;
 
@@ -77,6 +77,13 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
+        }
+    }
+
+    .machine-preview-container {
+        canvas {
+            width: 100%;
+            height: 100%;
         }
     }
 
