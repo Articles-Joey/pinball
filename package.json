@@ -11,35 +11,40 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@articles-media/articles-dev-box": "^1.0.16",
+    "@articles-media/articles-gamepad-helper": "^0.0.11",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.6",
-    "@mui/material": "^7.3.6",
-    "@mui/material-nextjs": "^7.3.6",
+    "@mui/icons-material": "^7.3.8",
+    "@mui/material": "^7.3.8",
+    "@mui/material-nextjs": "^7.3.8",
     "@react-three/cannon": "^6.6.0",
-    "@react-three/drei": "^10.5.0",
-    "@react-three/fiber": "^9.2.0",
-    "axios": "^1.13.2",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "axios": "^1.13.5",
     "bootstrap": "^5.3.8",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "lodash": "^4.17.21",
-    "next": "^16.0.7",
+    "next": "^16.1.6",
     "nipplejs": "^0.10.2",
-    "react": "^19.2.1",
+    "react": "^19.2.4",
     "react-bootstrap": "^2.10.10",
     "react-countdown": "^2.3.6",
-    "react-dom": "^19.2.1",
+    "react-dom": "^19.2.4",
     "react-hotkeys-hook": "^5.1.0",
-    "sass": "^1.94.2",
+    "sass": "^1.97.3",
     "socket.io-client": "^4.8.1",
-    "swr": "^2.3.7",
-    "three": "^0.178.0"
+    "swr": "^2.4.0",
+    "three": "^0.183.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.7"
+    "eslint": "^10",
+    "eslint-config-next": "16.1.6"
+  },
+  "overrides": {
+    "minimatch": "^10.2.2"
   }
 }

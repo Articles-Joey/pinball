@@ -137,280 +137,283 @@ export default function PinballLandingPage(props) {
                 machine={machine}
             /> */}
 
-            <div className="ui-content container d-flex justify-content-center align-items-stretch">
+            <div className='container py-3'>
 
-                <div
-                    className="card card-articles card-sm"
-                    style={{ "width": "30rem" }}
-                >
-
-                    {/* <div style={{ position: 'relative', height: '200px' }}>
-                        <Image
-                            src={Logo}
-                            alt=""
-                            fill
-                            style={{ objectFit: 'cover' }}
-                        />
-                    </div> */}
-
-                    <div className='card-header d-flex align-items-center'>
-
-                        <span>Select a machine to continue</span>
-
-                        {/* <div className="flex-grow-1">
-
-                            <div className="form-group articles mb-0">
-                                <label htmlFor="nickname">Nickname</label>
-                                <SingleInput
-                                    value={nickname}
-                                    setValue={setNickname}
-                                    noMargin
-                                />
-                            </div>
-
-                            <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
-
+                <div className="ui-content">
+    
+                    <div
+                        className="machine-selection card card-articles card-sm"
+                    >
+    
+                        {/* <div style={{ position: 'relative', height: '200px' }}>
+                            <Image
+                                src={Logo}
+                                alt=""
+                                fill
+                                style={{ objectFit: 'cover' }}
+                            />
                         </div> */}
-
-                    </div>
-
-                    <div className="card-body">
-
-                        <div className="servers">
-
-                            {pinballMachines.map(obj => {
-
-                                // return
-
-                                // let lobbyLookup = lobbyDetails?.fourFrogsGlobalState?.games?.find(lobby =>
-                                //     parseInt(lobby.server_id) == id
-                                // )
-
-                                return (
-                                    <div key={obj.name} className="server">
-
-                                        {/* <div className='d-flex justify-content-between align-items-center w-100 mb-2'>
-                                            <div className="mb-0" style={{ fontSize: '0.9rem' }}><b>Server {id}</b></div>
-                                            <div className='mb-0'>{lobbyLookup?.players?.length || 0}/4</div>
-                                        </div>
-
-                                        <div className='d-flex justify-content-around w-100 mb-1'>
-                                            {[1, 2, 3, 4].map(player_count => {
-
-                                                let playerLookup = false
-
-                                                if (lobbyLookup?.players?.length >= player_count) playerLookup = true
-
-                                                return (
-                                                    <div key={player_count} className="icon" style={{
-                                                        width: '20px',
-                                                        height: '20px',
-                                                        ...(playerLookup ? {
-                                                            backgroundColor: 'black',
-                                                        } : {
-                                                            backgroundColor: 'gray',
-                                                        }),
-                                                        border: '1px solid black'
-                                                    }}>
-
-                                                    </div>
-                                                )
-                                            })}
-                                        </div> */}
-
-                                        <div className="ratio ratio-1x1 bg-black mb-2">
-                                            {obj.preview &&
-                                                <img src={obj.preview} style={{ objectFit: 'cover' }} className='w-100 h-100' alt="" />
-                                            }
-                                        </div>
-
-                                        <div className='mb-2'>{obj.name}</div>
-
-                                        <ArticlesButton
-                                            className="w-100"
-                                            small
-                                            active={obj.name == machine}
-                                            // disabled={obj.name !== "USA Pinball"}
-                                            onClick={() => {
-                                                setMachine(obj.name)
-                                            }}
-                                        >
-                                            Select
-                                        </ArticlesButton>
-
-                                        <Link
-                                            className={`w-100`}
-                                            href={{
-                                                pathname: `/play`,
-                                                query: {
-                                                    machine: obj.name
+    
+                        <div className='card-header d-flex align-items-center'>
+    
+                            <span>Select a machine to continue</span>
+    
+                            {/* <div className="flex-grow-1">
+    
+                                <div className="form-group articles mb-0">
+                                    <label htmlFor="nickname">Nickname</label>
+                                    <SingleInput
+                                        value={nickname}
+                                        setValue={setNickname}
+                                        noMargin
+                                    />
+                                </div>
+    
+                                <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
+    
+                            </div> */}
+    
+                        </div>
+    
+                        <div className="card-body">
+    
+                            <div className="machines">
+    
+                                {pinballMachines.map(obj => {
+    
+                                    // return
+    
+                                    // let lobbyLookup = lobbyDetails?.fourFrogsGlobalState?.games?.find(lobby =>
+                                    //     parseInt(lobby.server_id) == id
+                                    // )
+    
+                                    return (
+                                        <div key={obj.name} className="machine">
+    
+                                            {/* <div className='d-flex justify-content-between align-items-center w-100 mb-2'>
+                                                <div className="mb-0" style={{ fontSize: '0.9rem' }}><b>Server {id}</b></div>
+                                                <div className='mb-0'>{lobbyLookup?.players?.length || 0}/4</div>
+                                            </div>
+    
+                                            <div className='d-flex justify-content-around w-100 mb-1'>
+                                                {[1, 2, 3, 4].map(player_count => {
+    
+                                                    let playerLookup = false
+    
+                                                    if (lobbyLookup?.players?.length >= player_count) playerLookup = true
+    
+                                                    return (
+                                                        <div key={player_count} className="icon" style={{
+                                                            width: '20px',
+                                                            height: '20px',
+                                                            ...(playerLookup ? {
+                                                                backgroundColor: 'black',
+                                                            } : {
+                                                                backgroundColor: 'gray',
+                                                            }),
+                                                            border: '1px solid black'
+                                                        }}>
+    
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div> */}
+    
+                                            <div className="ratio ratio-1x1 bg-black mb-2">
+                                                {obj.preview &&
+                                                    <img src={obj.preview} style={{ objectFit: 'cover' }} className='w-100 h-100' alt="" />
                                                 }
-                                            }}
-                                        >
+                                            </div>
+    
+                                            <div className='mb-2'>{obj.name}</div>
+    
                                             <ArticlesButton
                                                 className="w-100"
                                                 small
-                                            // disabled={obj.name !== "USA Pinball"}
+                                                active={obj.name == machine}
+                                                // disabled={obj.name !== "USA Pinball"}
+                                                onClick={() => {
+                                                    setMachine(obj.name)
+                                                }}
                                             >
-                                                Play
+                                                Select
                                             </ArticlesButton>
-                                        </Link>
-
-                                    </div>
-                                )
-                            })}
-
+    
+                                            <Link
+                                                className={`w-100`}
+                                                href={{
+                                                    pathname: `/play`,
+                                                    query: {
+                                                        machine: obj.name
+                                                    }
+                                                }}
+                                            >
+                                                <ArticlesButton
+                                                    className="w-100"
+                                                    small
+                                                // disabled={obj.name !== "USA Pinball"}
+                                                >
+                                                    Play
+                                                </ArticlesButton>
+                                            </Link>
+    
+                                        </div>
+                                    )
+                                })}
+    
+                            </div>
+    
                         </div>
-
-                    </div>
-
-                    <div className="card-footer d-flex flex-wrap justify-content-center">
-
-                        <ArticlesButton
-                            className={`w-50`}
-                            small
-                            onClick={() => {
-                                setShowSettingsModal(prev => !prev)
-                            }}
-                        >
-                            <i className="fad fa-cog"></i>
-                            Settings
-                        </ArticlesButton>
-
-                        <ArticlesButton
-                            className={`w-50`}
-                            small
-                            onClick={() => {
-                                setShowInfoModal({
-                                    game: "Pinball"
-                                })
-                            }}
-                        >
-                            <i className="fad fa-info-square"></i>
-                            Rules & Controls
-                        </ArticlesButton>
-
-                        <Link
-                            href={'https://github.com/Articles-Joey/pinball'}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='w-50'
-                        >
+    
+                        <div className="card-footer d-flex flex-wrap justify-content-center">
+    
                             <ArticlesButton
-                                className={`w-100`}
+                                className={`w-50`}
                                 small
                                 onClick={() => {
-
+                                    setShowSettingsModal(prev => !prev)
                                 }}
                             >
-                                <i className="fab fa-github"></i>
-                                Github
+                                <i className="fad fa-cog"></i>
+                                Settings
                             </ArticlesButton>
-                        </Link>
-
-                        <ArticlesButton
-                            className={`w-50`}
-                            small
-                            onClick={() => {
-                                setShowCreditsModal(true)
-                            }}
-                        >
-                            <i className="fad fa-users"></i>
-                            Credits
-                        </ArticlesButton>
-
-                         <ArticlesButton
-                            className={`w-50 mt-3`}
-                            small
-                            onClick={() => {
-                                toggleTheme()
-                            }}
-                        >
-                            <i className="fad fa-eye-dropper"></i>
-                            Theme: {theme}
-                        </ArticlesButton>
-
-                        <ArticlesButton
-                            className={`w-50 mt-3`}
-                            small
-                            onClick={() => {
-                                requestFullscreen('pinball-landing-page')
-                            }}
-                        >
-                            <i className="fad fa-eye-dropper"></i>
-                            Wallpaper Mode
-                        </ArticlesButton>
-
-                    </div>
-
-                </div>
-
-                <div
-                    className="card card-articles card-sm"
-                    style={{ "width": "20rem" }}
-                >
-
-                    <div className='card-header d-flex align-items-center'>
-
-                        <span>Machine preview</span>
-
-                        {/* <div className="flex-grow-1">
-
-                            <div className="form-group articles mb-0">
-                                <label htmlFor="nickname">Nickname</label>
-                                <SingleInput
-                                    value={nickname}
-                                    setValue={setNickname}
-                                    noMargin
-                                />
-                            </div>
-
-                            <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
-
-                        </div> */}
-
-                    </div>
-
-                    <div className="card-body h-100">
-                        <div className="machine-preview-container bg-black p-2 h-100">
-
-                            <MachinePreviewCanvas 
-                                key={machine}
-                            />
-
-                            {/* {activeMachine?.machine_preview &&
-                                <img
-                                    src={activeMachine.machine_preview}
-                                    style={{ objectFit: 'cover' }}
-                                    className='w-100 h-100'
-                                    alt=""
-                                />
-                            } */}
-
-                        </div>
-                    </div>
-
-                    <div className="card-footer d-flex flex-wrap justify-content-center">
-                        <Link
-                            className={`w-100`}
-                            href={{
-                                pathname: `/play`,
-                                query: {
-                                    machine: machine
-                                }
-                            }}
-                        >
+    
                             <ArticlesButton
-                                className="w-100"
+                                className={`w-50`}
                                 small
-                                disabled={machine !== "USA Pinball"}
+                                onClick={() => {
+                                    setShowInfoModal({
+                                        game: "Pinball"
+                                    })
+                                }}
                             >
-                                Play
+                                <i className="fad fa-info-square"></i>
+                                Rules & Controls
                             </ArticlesButton>
-                        </Link>
+    
+                            <Link
+                                href={'https://github.com/Articles-Joey/pinball'}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='w-50'
+                            >
+                                <ArticlesButton
+                                    className={`w-100`}
+                                    small
+                                    onClick={() => {
+    
+                                    }}
+                                >
+                                    <i className="fab fa-github"></i>
+                                    Github
+                                </ArticlesButton>
+                            </Link>
+    
+                            <ArticlesButton
+                                className={`w-50`}
+                                small
+                                onClick={() => {
+                                    setShowCreditsModal(true)
+                                }}
+                            >
+                                <i className="fad fa-users"></i>
+                                Credits
+                            </ArticlesButton>
+    
+                             <ArticlesButton
+                                className={`w-50 mt-3`}
+                                small
+                                onClick={() => {
+                                    toggleTheme()
+                                }}
+                            >
+                                <i className="fad fa-eye-dropper"></i>
+                                Theme: {theme}
+                            </ArticlesButton>
+    
+                            <ArticlesButton
+                                className={`w-50 mt-3`}
+                                small
+                                onClick={() => {
+                                    requestFullscreen('pinball-landing-page')
+                                }}
+                            >
+                                <i className="fad fa-eye-dropper"></i>
+                                Wallpaper Mode
+                            </ArticlesButton>
+    
+                        </div>
+    
                     </div>
-
+    
+                    <div
+                        className="machine-preview card card-articles card-sm"
+                    >
+    
+                        <div className='card-header d-flex align-items-center'>
+    
+                            <span>Machine preview</span>
+    
+                            {/* <div className="flex-grow-1">
+    
+                                <div className="form-group articles mb-0">
+                                    <label htmlFor="nickname">Nickname</label>
+                                    <SingleInput
+                                        value={nickname}
+                                        setValue={setNickname}
+                                        noMargin
+                                    />
+                                </div>
+    
+                                <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
+    
+                            </div> */}
+    
+                        </div>
+    
+                        <div className="card-body h-100 position-relative">
+                            <div className="machine-preview-canvas-container bg-black p-2">
+    
+                                <MachinePreviewCanvas 
+                                    key={machine}
+                                />
+    
+                                {/* {activeMachine?.machine_preview &&
+                                    <img
+                                        src={activeMachine.machine_preview}
+                                        style={{ objectFit: 'cover' }}
+                                        className='w-100 h-100'
+                                        alt=""
+                                    />
+                                } */}
+    
+                            </div>
+                        </div>
+    
+                        <div className="card-footer d-flex flex-wrap justify-content-center">
+                            <Link
+                                className={`w-100`}
+                                href={{
+                                    pathname: `/play`,
+                                    query: {
+                                        machine: machine
+                                    }
+                                }}
+                            >
+                                <ArticlesButton
+                                    className="w-100"
+                                    small
+                                    disabled={machine !== "USA Pinball"}
+                                >
+                                    Play
+                                </ArticlesButton>
+                            </Link>
+                        </div>
+    
+                    </div>
+                    
                 </div>
+
             </div>
 
             {/* <Ad section={"Games"} section_id={'USA Pinball'} /> */}

@@ -53,11 +53,12 @@
     }
 
     .menu-card {
+
         @include media-breakpoint-down(lg) {
             display: flex;
             position: fixed;
             width: 100%;
-            height: calc(100vh - 100px);
+            height: calc(100vh - 50px);
             overflow-y: auto;
             top: var(--top-position);
             left: 0;
@@ -66,13 +67,8 @@
             z-index: 10;
             flex-direction: column;
             background-color: var(--card-background-75);
-        }
-
-        @include media-breakpoint-up(lg) {
-        }
-
-        &.show {
-            transform: translateX(0%);
+            justify-content: end;
+            align-items: center;
         }
 
         @include media-breakpoint-up(lg) {
@@ -86,6 +82,18 @@
             padding: 1rem;
             font-size: 0.8rem;
             height: calc(100vh - var(--top-position));
+        }
+
+        &.show {
+            transform: translateX(0%);
+        }
+
+        .menu-card-content {
+            width: 300px;
+
+            @include media-breakpoint-up(lg) {
+                width: 100%;
+            }
         }
 
         .camera-controls {
@@ -127,10 +135,35 @@
             top: 0;
             height: 100%;
             width: 100%;
-    
+
             canvas {
                 height: 100%;
                 width: 100%;
+            }
+
+            .floating-controls {
+                position: absolute;
+                width: 100%;
+                bottom: calc(50px + 0rem);
+                z-index: 2;
+                display: flex;
+                justify-content: space-between;
+                // display: none;
+
+                @include media-breakpoint-up(lg) {
+                    display: none;
+                }
+
+                .left-bumper, .right-bumper, .launch {
+                    margin: 0.75rem;
+                    width: 100px;
+                    height: 100px;
+                    background-color: rgba(0, 0, 0, 0.25);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 2rem;
+                }
             }
 
             .floating-ui {
@@ -162,5 +195,5 @@
             display: block;
         }
     }
-    
+
 }
