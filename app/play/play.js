@@ -13,7 +13,8 @@ import GameScoreboard from '@/components/UI/GameScoreboard'
 // });
 
 import ArticlesButton from '@/components/UI/Button';
-import useFullscreen from '@/hooks/useFullScreen';
+// import useFullscreen from '@/hooks/useFullScreen';
+import useFullscreen from '@articles-media/articles-dev-box/useFullscreen';
 import Link from 'next/link';
 // import routes from '@/components/constants/routes';
 import { usePinballGameStore } from '@/hooks/usePinballGameStore';
@@ -38,20 +39,33 @@ export default function UsaPinballGamePage(props) {
         setSceneKey((prevKey) => prevKey + 1);
     };
 
-    const {
-        score,
-        setScore,
-        ballsLeft,
-        recentGames,
-        setRecentGames,
-        setBallsLeft,
-        leftPaddle,
-        setLeftPaddle,
-        rightPaddle,
-        setRightPaddle,
-        spring,
-        setSpring
-    } = usePinballGameStore()
+    const score = usePinballGameStore(state => state.score)
+    const setScore = usePinballGameStore(state => state.setScore)
+    const ballsLeft = usePinballGameStore(state => state.ballsLeft)
+    const setBallsLeft = usePinballGameStore(state => state.setBallsLeft)
+    const recentGames = usePinballGameStore(state => state.recentGames)
+    const setRecentGames = usePinballGameStore(state => state.setRecentGames)
+    const leftPaddle = usePinballGameStore(state => state.leftPaddle)
+    const setLeftPaddle = usePinballGameStore(state => state.setLeftPaddle)
+    const rightPaddle = usePinballGameStore(state => state.rightPaddle)
+    const setRightPaddle = usePinballGameStore(state => state.setRightPaddle)
+    const spring = usePinballGameStore(state => state.spring)
+    const setSpring = usePinballGameStore(state => state.setSpring)
+
+    // const {
+    //     score,
+    //     setScore,
+    //     ballsLeft,
+    //     recentGames,
+    //     setRecentGames,
+    //     setBallsLeft,
+    //     leftPaddle,
+    //     setLeftPaddle,
+    //     rightPaddle,
+    //     setRightPaddle,
+    //     spring,
+    //     setSpring
+    // } = usePinballGameStore()
 
     const personalBest = useMemo(() => {
         if (!recentGames || !recentGames.length) return []; // Handle empty or undefined arrays
@@ -150,7 +164,7 @@ export default function UsaPinballGamePage(props) {
                                 if (isFullscreen) {
                                     exitFullscreen()
                                 } else {
-                                    requestFullscreen('usa-pinball-game')
+                                    requestFullscreen()
                                 }
                             }}
                         >

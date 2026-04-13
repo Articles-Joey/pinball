@@ -7,37 +7,53 @@ import dynamic from 'next/dynamic'
 // import { useHotkeys } from 'react-hotkeys-hook';
 
 // import GameScoreboard from 'components/Games/GameScoreboard'
-const GameScoreboard = dynamic(() => import('@/components/UI/GameScoreboard'), {
-    ssr: false,
-});
+// const GameScoreboard = dynamic(() => import('@/components/UI/GameScoreboard'), {
+//     ssr: false,
+// });
 
 // const Ad = dynamic(() => import('components/Ads/Ad'), {
 //     ssr: false,
 // });
 
 import ArticlesButton from '@/components/UI/Button';
-import useFullscreen from '@/hooks/useFullScreen';
+// import useFullscreen from '@/hooks/useFullScreen';
+import useFullscreen from '@articles-media/articles-dev-box/useFullscreen';
 import Link from 'next/link';
 // import SingleInput from '@/components/Articles/SingleInput';
 import { useLocalStorageNew } from '@/hooks/useLocalStorageNew';
 // import { useSelector } from 'react-redux';
 import { usePinballGameStore } from '@/hooks/usePinballGameStore';
 import MachinePreviewCanvas from '@/components/Game/MachinePreviewCanvas';
+import { useStore } from '@/hooks/useStore';
 
-const SettingsModal = dynamic(
-    () => import('@/components/UI/SettingsModal'),
-    { ssr: false }
-)
+// const SettingsModal = dynamic(
+//     () => import('@/components/UI/SettingsModal'),
+//     { ssr: false }
+// )
 
-const InfoModal = dynamic(
-    () => import('@/components/UI/InfoModal'),
-    { ssr: false }
-)
+// const InfoModal = dynamic(
+//     () => import('@/components/UI/InfoModal'),
+//     { ssr: false }
+// )
 
-const CreditsModal = dynamic(
-    () => import('@/components/UI/CreditsModal'),
+// const CreditsModal = dynamic(
+//     () => import('@/components/UI/CreditsModal'),
+//     { ssr: false }
+// )
+
+const GameScoreboard = dynamic(() =>
+    import('@articles-media/articles-dev-box/GameScoreboard'),
     { ssr: false }
-)
+);
+const Ad = dynamic(() =>
+    import('@articles-media/articles-dev-box/Ad'),
+    { ssr: false }
+);
+
+const ReturnToLauncherButton = dynamic(() =>
+    import('@articles-media/articles-dev-box/ReturnToLauncherButton'),
+    { ssr: false }
+);
 
 // import LandingSceneCanvas from '@/components/Game/LandingSceneCanvas';
 const LandingSceneCanvas = lazy(() => import('@/components/Game/LandingSceneCanvas'));
@@ -76,21 +92,31 @@ const pinballMachines = [
 
 export default function PinballLandingPage(props) {
 
-    const theme = usePinballGameStore(state => state.theme);
-    const toggleTheme = usePinballGameStore(state => state.toggleTheme);
+    // const theme = usePinballGameStore(state => state.theme);
+    // const toggleTheme = usePinballGameStore(state => state.toggleTheme);
     const machine = usePinballGameStore(state => state.machine);
     const setMachine = usePinballGameStore(state => state.setMachine);
 
     const { isFullscreen, requestFullscreen, exitFullscreen } = useFullscreen();
 
     // const userReduxState = useSelector((state) => state.auth.user_details)
-    const userReduxState = false
+    // const userReduxState = false
+    // const [nickname, setNickname] = useLocalStorageNew("game:nickname", userReduxState.display_name)
 
-    const [nickname, setNickname] = useLocalStorageNew("game:nickname", userReduxState.display_name)
+    const showInfoModal = useStore((state) => state.showInfoModal)
+    const setShowInfoModal = useStore((state) => state.setShowInfoModal)
 
-    const [showInfoModal, setShowInfoModal] = useState(false)
-    const [showCreditsModal, setShowCreditsModal] = useState(false)
-    const [showSettingsModal, setShowSettingsModal] = useState(false)
+    const showSettingsModal = useStore((state) => state.showSettingsModal)
+    const setShowSettingsModal = useStore((state) => state.setShowSettingsModal)
+
+    const showCreditsModal = useStore((state) => state.showCreditsModal)
+    const setShowCreditsModal = useStore((state) => state.setShowCreditsModal)
+
+    const toggleDarkMode = useStore((state) => state.toggleDarkMode)
+
+    // const [showInfoModal, setShowInfoModal] = useState(false)
+    // const [showCreditsModal, setShowCreditsModal] = useState(false)
+    // const [showSettingsModal, setShowSettingsModal] = useState(false)
 
     const activeMachine = useMemo(() => {
 
@@ -100,27 +126,6 @@ export default function PinballLandingPage(props) {
 
     return (
         <div className={`pinball-landing-page ${isFullscreen ? 'fullscreen' : ''}`} id='pinball-landing-page'>
-
-            {showInfoModal &&
-                <InfoModal
-                    show={showInfoModal}
-                    setShow={setShowInfoModal}
-                />
-            }
-
-            {showCreditsModal &&
-                <CreditsModal
-                    show={showCreditsModal}
-                    setShow={setShowCreditsModal}
-                />
-            }
-
-            {showSettingsModal &&
-                <SettingsModal
-                    show={showSettingsModal}
-                    setShow={setShowSettingsModal}
-                />
-            }
 
             <div className='landing-scene-canvas-wrapper'>
                 <LandingSceneCanvas />
@@ -267,8 +272,9 @@ export default function PinballLandingPage(props) {
     
                         <div className="card-footer d-flex flex-wrap justify-content-center">
     
+                            <div className="d-flex w-50">
                             <ArticlesButton
-                                className={`w-50`}
+                                className={`w-100`}
                                 small
                                 onClick={() => {
                                     setShowSettingsModal(prev => !prev)
@@ -277,18 +283,27 @@ export default function PinballLandingPage(props) {
                                 <i className="fad fa-cog"></i>
                                 Settings
                             </ArticlesButton>
+                            <ArticlesButton
+                                className={``}
+                                small
+                                onClick={() => {
+                                    toggleDarkMode()
+                                }}
+                            >
+                                <i className="fad fa-moon"></i>
+                                {/* Dark Mode */}
+                            </ArticlesButton>
+                        </div>
     
                             <ArticlesButton
                                 className={`w-50`}
                                 small
                                 onClick={() => {
-                                    setShowInfoModal({
-                                        game: "Pinball"
-                                    })
+                                    setShowInfoModal(true)
                                 }}
                             >
                                 <i className="fad fa-info-square"></i>
-                                Rules & Controls
+                                Info
                             </ArticlesButton>
     
                             <Link
@@ -319,28 +334,23 @@ export default function PinballLandingPage(props) {
                                 <i className="fad fa-users"></i>
                                 Credits
                             </ArticlesButton>
-    
-                             <ArticlesButton
-                                className={`w-50 mt-3`}
-                                small
-                                onClick={() => {
-                                    toggleTheme()
-                                }}
-                            >
-                                <i className="fad fa-eye-dropper"></i>
-                                Theme: {theme}
-                            </ArticlesButton>
-    
-                            <ArticlesButton
-                                className={`w-50 mt-3`}
-                                small
-                                onClick={() => {
-                                    requestFullscreen('pinball-landing-page')
-                                }}
-                            >
-                                <i className="fad fa-eye-dropper"></i>
-                                Wallpaper Mode
-                            </ArticlesButton>
+
+                            <div className='d-flex mt-3 w-100'>
+                                <div className="w-50">
+                                    <ReturnToLauncherButton />
+                                </div>
+        
+                                <ArticlesButton
+                                    className={`w-50`}
+                                    small
+                                    onClick={() => {
+                                        requestFullscreen()
+                                    }}
+                                >
+                                    <i className="fad fa-eye-dropper"></i>
+                                    Wallpaper Mode
+                                </ArticlesButton>
+                            </div>
     
                         </div>
     

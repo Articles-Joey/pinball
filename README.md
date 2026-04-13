@@ -16,6 +16,10 @@ npm run dev
 
 Aiming to have some multiplayer machines via P2P eventually.
 
+## TODO
+
+- Expand SettingsModal in dev-box to input array of controls for left paddle, right paddle, launch management
+
 ## Attributions
 
 [Pinball Machine icon](https://www.flaticon.com/free-icon/pinball_7960368?related_id=7960355&origin=search)  

@@ -1,31 +1,18 @@
-"use client"
-import { useEffect } from "react";
-// import { useStore } from "@/hooks/useStore";
-import { usePinballGameStore } from "@/hooks/usePinballGameStore";
+"use client";
+import { useStore } from "@/hooks/useStore";
+import DarkModeHandler from "@articles-media/articles-dev-box/DarkModeHandler";
+import GlobalBody from '@articles-media/articles-dev-box/GlobalBody';
 
-export default function LayoutClient({ children }) {
+export default function LayoutClient({
 
-    const theme = usePinballGameStore(state => state.theme);
-    // const darkMode = useStore(state => state.darkMode)
-    // const setDarkMode = useStore(state => state.setDarkMode)
-
-    useEffect(() => {
-
-        if (theme == null) {
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            usePinballGameStore.getState().setTheme(prefersDark ? "Dark" : "Light");
-        }
-
-        if (theme == "Dark") {
-            document.body.setAttribute("data-bs-theme", 'dark');
-        } else {
-            document.body.setAttribute("data-bs-theme", 'light');
-        }
-
-    }, [theme]);
+}) {
 
     return (
         <>
+            <GlobalBody />
+            <DarkModeHandler
+                useStore={useStore}
+            />
         </>
     );
 }

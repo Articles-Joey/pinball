@@ -1,12 +1,23 @@
 import useSWR from "swr";
 
-import axios from "axios";
 
-const fetcher = (obj) => axios.get(obj.url, {
-    params: {
-        game: obj.game,
+
+const fetcher = async (obj) => {
+    const url = new URL(obj.url, window.location.origin);
+    if (obj.game) {
+        url.searchParams.append('game', obj.game);
     }
-}).then((res) => res.data);
+    const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+        },
+    });
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+};
 
 const options = {
     dedupingInterval: ((1000 * 60) * 30),

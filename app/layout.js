@@ -9,9 +9,16 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 // import "./globals.css";
 import "@/styles/index.scss";
+
+import "@articles-media/articles-dev-box/dist/style.css";
+
+import "@articles-media/articles-gamepad-helper/dist/articles-gamepad-helper.css";
+
 import SocketLogicHandler from "@/components/SocketLogicHandler";
 import LayoutClient from './layout-client';
 import PeerHandler from '@/components/PeerHandler';
+import GlobalClientModals from '@/components/UI/GlobalClientModals';
+import { Suspense } from 'react';
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -42,12 +49,17 @@ export default function RootLayout({ children }) {
       </head>
 
       <body
-      // className={`${geistSans.variable} ${geistMono.variable}`}
+        // className={`${geistSans.variable} ${geistMono.variable}`}
+        data-bs-theme="dark"
       >
 
         <SocketLogicHandler />
         <PeerHandler />
         <LayoutClient />
+
+        <Suspense>
+          <GlobalClientModals />
+        </Suspense>
 
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
