@@ -1,111 +1,75 @@
-import { generateRandomNickname } from '@/util/generateRandomNickname';
-import { create } from 'zustand'
+// import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-const assets_src = 'games/Ocean Rings/'
+import typicalZustandStoreExcludes from '@articles-media/articles-dev-box/typicalZustandStoreExcludes';
+import typicalZustandStoreStateSlice from '@articles-media/articles-dev-box/typicalZustandStoreStateSlice';
+
+import generateRandomNickname from '@/util/generateRandomNickname';
 
 export const useStore = create()(
-  persist(
-    (set, get) => ({
+    persist(
+        (set, get) => ({
 
-      _hasHydrated: false,
-      setHasHydrated: (state) => {
-        set({
-          _hasHydrated: state
-        });
-      },
+            ...typicalZustandStoreStateSlice(set, get, generateRandomNickname),
 
-      nickname: generateRandomNickname(),
-      setNickname: (newValue) => {
-        set((prev) => ({
-          nickname: newValue
-        }))
-      },
-      randomNickname: () => {
+            touchControls: {
+                jump: false,
+                left: false,
+                right: false,
+                up: false,
+                down: false,
+            },
+            setTouchControls: (newValue) => {
+                set((prev) => ({
+                    touchControls: newValue
+                }))
+            },
+            touchControlsEnabled: false,
+            toggleTouchControlsEnabled: () => {
+                set((prev) => ({
+                    touchControlsEnabled: !prev.touchControlsEnabled
+                }))
+            },
+            setTouchControlsEnabled: (newValue) => {
+                set((prev) => ({
+                    touchControlsEnabled: newValue
+                }))
+            },
 
-        const newNickname = generateRandomNickname();
+            audioSettings: {
+                enabled: true,
+                game_volume: 50,
+                music_volume: 50,
+                sfx_volume: 50
+            },
+            setAudioSettings: (newValue) => {
+                set((prev) => ({
+                    audioSettings: newValue
+                }))
+            },
 
-        set((prev) => ({
-          nickname: newNickname
-        }))
-      },
+            // Fixed or Orbit
+            cameraMode: 'Fixed',
+            setCameraMode: (newValue) => {
+                set((prev) => ({
+                    cameraMode: newValue
+                }))
+            },
 
-      darkMode: true,
-      setDarkMode: (newValue) => {
-        set((prev) => ({
-          darkMode: newValue
-        }))
-      },
-      toggleDarkMode: () => set({ darkMode: !get().darkMode }),
-
-      updateCamera: null,
-      setUpdateCamera: (updateCamera) => set({ updateCamera }),
-
-      threeDimensional: true, // 'Light' | 'Dark' | null
-      setThreeDimensional: (threeDimensional) => set({ threeDimensional }),
-
-      showMenu: false,
-      setShowMenu: (value) => set({ showMenu: value }),
-      toggleShowMenu: () => set({ showMenu: !get().showMenu }),
-
-      sidebar: true,
-      setSidebar: (value) => set({ sidebar: value }),
-      toggleSidebar: () => set({ sidebar: !get().sidebar }),
-
-      landingAnimation: true,
-      setLandingAnimation: (value) => set({ landingAnimation: value }),
-      toggleLandingAnimation: () => set({ landingAnimation: !get().landingAnimation }),
-
-      showInfoModal: false,
-      setShowInfoModal: (value) => set({ showInfoModal: value }),
-      toggleInfoModal: () => set({ showInfoModal: !get().showInfoModal }),
-
-      loginInfoModal: false,
-      setLoginInfoModal: (value) => set({ loginInfoModal: value }),
-      toggleLoginInfoModal: () => set({ loginInfoModal: !get().loginInfoModal }),
-
-      showSettingsModal: false,
-      setShowSettingsModal: (value) => set({ showSettingsModal: value }),
-      toggleSettingsModal: () => set({ showSettingsModal: !get().showSettingsModal }),
-
-      showCreditsModal: false,
-      setShowCreditsModal: (value) => set({ showCreditsModal: value }),
-      toggleCreditsModal: () => set({ showCreditsModal: !get().showCreditsModal }),
-
-      graphicsQuality: "High",
-      setGraphicsQuality: (value) => set({ graphicsQuality: value }),
-
-      lobbyDetails: {
-        players: [],
-        games: [],
-      },
-      setLobbyDetails: (lobbyDetails) => set({ lobbyDetails }),
-
-      debug: false,
-      setDebug: (newValue) => {
-        set((prev) => ({
-          debug: newValue
-        }))
-      },
-
-    }),
-    {
-      name: 'ocean-rings-store', // name of the item in the storage (must be unique)
-      // storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
-      version: 1,
-      partialize: (state) => ({
-        nickname: state.nickname,
-        character: state.character,
-        darkMode: state.darkMode,
-        graphicsQuality: state.graphicsQuality,
-        landingAnimation: state.landingAnimation,
-        sidebar: state.sidebar,
-        graphicsQuality: state.graphicsQuality,
-        debug: state.debug
-      }),
-      onRehydrateStorage: () => (state) => {
-        state.setHasHydrated(true)
-      },
-    },
-  ),
+        }),
+        {
+            name: `${process.env.NEXT_PUBLIC_GAME_KEY}-store`,
+            version: 1,
+            onRehydrateStorage: (state) => {
+                return () => state.setHasHydrated(true)
+            },
+            partialize: (state) =>
+                Object.fromEntries(
+                    Object.entries(state).filter(([key]) => ![
+                        ...typicalZustandStoreExcludes,
+                    ].includes(key))
+                ),
+        },
+    ),
 )

@@ -1,6 +1,9 @@
 "use client";
+import { useAudioStore } from '@/hooks/useAudioStore';
+import { useSocketStore } from '@/hooks/useSocketStore';
 // import { useAudioStore } from '@/hooks/useAudioStore';
 import { useStore } from '@/hooks/useStore';
+import useTouchControlsStore from '@/hooks/useTouchControlsStore';
 import dynamic from 'next/dynamic'
 
 const InfoModal = dynamic(
@@ -8,27 +11,15 @@ const InfoModal = dynamic(
     { ssr: false }
 )
 
-// TODO: Replace with articles-dev-box SettingsModal when ready
-
 const SettingsModal = dynamic(
-    () => import('@/components/UI/SettingsModal'),
+    () => import('@articles-media/articles-dev-box/SettingsModal'),
     { ssr: false }
 )
-
-// const SettingsModal = dynamic(
-//     () => import('@articles-media/articles-dev-box/SettingsModal'),
-//     { ssr: false }
-// )
 
 const CreditsModal = dynamic(
     () => import('@articles-media/articles-dev-box/CreditsModal'),
     { ssr: false }
 )
-
-// const CreditsModal = dynamic(
-//     () => import('@/components/UI/CreditsModal'),
-//     { ssr: false }
-// )
 
 export default function GlobalClientModals() {
 
@@ -55,7 +46,9 @@ export default function GlobalClientModals() {
                     show={showSettingsModal}
                     setShow={setShowSettingsModal}
                     store={useStore}
-                    // useAudioStore={useAudioStore}
+                    useAudioStore={useAudioStore}
+                    useTouchControlsStore={useTouchControlsStore}
+                    useSocketStore={useSocketStore}
                     config={{
                         tabs: {
                             'Graphics': {
@@ -75,18 +68,19 @@ export default function GlobalClientModals() {
                                 ]
                             },
                             'Controls': {
-                                defaultKeyBindings: {
-                                    // moveUp: "W",
-                                    // moveDown: "S",
-                                    // moveLeft: "A",
-                                    // moveRight: "D",
-                                }
+                                touchControls: true
+                                // defaultKeyBindings: {
+                                //     // moveUp: "W",
+                                //     // moveDown: "S",
+                                //     // moveLeft: "A",
+                                //     // moveRight: "D",
+                                // }
                             },
                             'Multiplayer': {
-                                visible: false,
+                                serverUrl: true,
                             },
                             'Other': {
-
+                                toontownMode: true,
                             }
                         }
                     }}
@@ -97,8 +91,6 @@ export default function GlobalClientModals() {
                 <CreditsModal
                     show={showCreditsModal}
                     setShow={setShowCreditsModal}
-                    owner="Articles-Joey"
-                    repo="pinball"
                 />
             }
         </>

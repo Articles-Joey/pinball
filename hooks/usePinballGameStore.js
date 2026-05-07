@@ -63,6 +63,15 @@ export const usePinballGameStore = create()(
                 }))
             },
 
+            springHitCount: 0,
+            springHitPosition: [0, 0, 0],
+            triggerSpringHit: (pos) => {
+                set((prev) => ({
+                    springHitCount: prev.springHitCount + 1,
+                    springHitPosition: pos,
+                }))
+            },
+
             ballsLeft: 2,
             setBallsLeft: (newValue) => {
                 set((prev) => ({

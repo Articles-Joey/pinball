@@ -19,9 +19,11 @@ const trashNouns = [
  * Generates a random trash-themed nickname.
  * @returns {string} A random nickname like "StinkyBananaPeel42" or "RustySodaCan7".
  */
-export const generateRandomNickname = () => {
+const generateRandomNickname = () => {
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = trashNouns[Math.floor(Math.random() * trashNouns.length)];
     const num = Math.floor(Math.random() * 100);
     return `${adj}${noun}${num}`;
 };
+
+export default generateRandomNickname;

@@ -19,6 +19,7 @@ import Link from 'next/link';
 // import routes from '@/components/constants/routes';
 import { usePinballGameStore } from '@/hooks/usePinballGameStore';
 import { format } from 'date-fns';
+import { useStore } from '@/hooks/useStore';
 
 const GameCanvas = dynamic(() => import('@/components/Game/GameCanvas'), {
     ssr: false,
@@ -51,6 +52,8 @@ export default function UsaPinballGamePage(props) {
     const setRightPaddle = usePinballGameStore(state => state.setRightPaddle)
     const spring = usePinballGameStore(state => state.spring)
     const setSpring = usePinballGameStore(state => state.setSpring)
+
+    const setShowSettingsModal = useStore((state) => state.setShowSettingsModal)
 
     // const {
     //     score,
@@ -141,11 +144,11 @@ export default function UsaPinballGamePage(props) {
 
                 <div className='menu-card-content'>
 
-                    <div className='mb-3'>
+                    <div className='d-flex flex-wrap mb-3'>
 
                         <Link href={'/'} className='w-50'>
                             <ArticlesButton
-                                className={`w-50`}
+                                className={`w-100`}
                                 small
                                 onClick={() => {
 
@@ -172,6 +175,29 @@ export default function UsaPinballGamePage(props) {
                             {!isFullscreen && <span><i className='fad fa-expand'></i></span>}
                             <span>Fullscreen</span>
                         </ArticlesButton>
+
+                        <div className="w-50 d-flex">
+                            <ArticlesButton
+                                className={`w-100`}
+                                small
+                                onClick={() => {
+                                    setShowSettingsModal(true)
+                                }}
+                            >
+                                <i className="fad fa-cog"></i>
+                                Settings
+                            </ArticlesButton>
+                            <ArticlesButton
+                                // className={`w-50`}
+                                small
+                                onClick={() => {
+                                    toggleDarkMode()
+                                }}
+                            >
+                                <i className="fad fa-sun"></i>
+                                {/* Leave Game */}
+                            </ArticlesButton>
+                        </div>
 
                     </div>
 

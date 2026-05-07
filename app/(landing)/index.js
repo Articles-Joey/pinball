@@ -26,20 +26,8 @@ import { usePinballGameStore } from '@/hooks/usePinballGameStore';
 import MachinePreviewCanvas from '@/components/Game/MachinePreviewCanvas';
 import { useStore } from '@/hooks/useStore';
 
-// const SettingsModal = dynamic(
-//     () => import('@/components/UI/SettingsModal'),
-//     { ssr: false }
-// )
-
-// const InfoModal = dynamic(
-//     () => import('@/components/UI/InfoModal'),
-//     { ssr: false }
-// )
-
-// const CreditsModal = dynamic(
-//     () => import('@/components/UI/CreditsModal'),
-//     { ssr: false }
-// )
+import NicknameInput from '@articles-media/articles-dev-box/NicknameInput';
+import GameMenuPrimaryButtonGroup from '@articles-media/articles-dev-box/GameMenuPrimaryButtonGroup';
 
 const GameScoreboard = dynamic(() =>
     import('@articles-media/articles-dev-box/GameScoreboard'),
@@ -92,44 +80,19 @@ const pinballMachines = [
 
 export default function PinballLandingPage(props) {
 
-    // const theme = usePinballGameStore(state => state.theme);
-    // const toggleTheme = usePinballGameStore(state => state.toggleTheme);
     const machine = usePinballGameStore(state => state.machine);
     const setMachine = usePinballGameStore(state => state.setMachine);
 
     const { isFullscreen, requestFullscreen, exitFullscreen } = useFullscreen();
 
-    // const userReduxState = useSelector((state) => state.auth.user_details)
-    // const userReduxState = false
-    // const [nickname, setNickname] = useLocalStorageNew("game:nickname", userReduxState.display_name)
-
-    const showInfoModal = useStore((state) => state.showInfoModal)
-    const setShowInfoModal = useStore((state) => state.setShowInfoModal)
-
-    const showSettingsModal = useStore((state) => state.showSettingsModal)
-    const setShowSettingsModal = useStore((state) => state.setShowSettingsModal)
-
-    const showCreditsModal = useStore((state) => state.showCreditsModal)
-    const setShowCreditsModal = useStore((state) => state.setShowCreditsModal)
-
-    const toggleDarkMode = useStore((state) => state.toggleDarkMode)
-
-    // const [showInfoModal, setShowInfoModal] = useState(false)
-    // const [showCreditsModal, setShowCreditsModal] = useState(false)
-    // const [showSettingsModal, setShowSettingsModal] = useState(false)
-
-    const activeMachine = useMemo(() => {
-
-        return pinballMachines.find(obj => obj.name == machine)
-
-    }, [machine])
+    const landingAnimation = useStore((state) => state.landingAnimation)
 
     return (
         <div className={`pinball-landing-page ${isFullscreen ? 'fullscreen' : ''}`} id='pinball-landing-page'>
 
-            <div className='landing-scene-canvas-wrapper'>
+            {landingAnimation && <div className='landing-scene-canvas-wrapper'>
                 <LandingSceneCanvas />
-            </div>
+            </div>}
 
             <img src={`${process.env.NEXT_PUBLIC_CDN}games/Pinball/pinball-landing-background.webp`} alt="" className="background" />
 
@@ -145,11 +108,11 @@ export default function PinballLandingPage(props) {
             <div className='container py-3'>
 
                 <div className="ui-content">
-    
+
                     <div
                         className="machine-selection card card-articles card-sm"
                     >
-    
+
                         {/* <div style={{ position: 'relative', height: '200px' }}>
                             <Image
                                 src={Logo}
@@ -158,11 +121,11 @@ export default function PinballLandingPage(props) {
                                 style={{ objectFit: 'cover' }}
                             />
                         </div> */}
-    
+
                         <div className='card-header d-flex align-items-center'>
-    
+
                             <span>Select a machine to continue</span>
-    
+
                             {/* <div className="flex-grow-1">
     
                                 <div className="form-group articles mb-0">
@@ -177,24 +140,24 @@ export default function PinballLandingPage(props) {
                                 <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
     
                             </div> */}
-    
+
                         </div>
-    
+
                         <div className="card-body">
-    
+
                             <div className="machines">
-    
+
                                 {pinballMachines.map(obj => {
-    
+
                                     // return
-    
+
                                     // let lobbyLookup = lobbyDetails?.fourFrogsGlobalState?.games?.find(lobby =>
                                     //     parseInt(lobby.server_id) == id
                                     // )
-    
+
                                     return (
                                         <div key={obj.name} className="machine">
-    
+
                                             {/* <div className='d-flex justify-content-between align-items-center w-100 mb-2'>
                                                 <div className="mb-0" style={{ fontSize: '0.9rem' }}><b>Server {id}</b></div>
                                                 <div className='mb-0'>{lobbyLookup?.players?.length || 0}/4</div>
@@ -223,15 +186,15 @@ export default function PinballLandingPage(props) {
                                                     )
                                                 })}
                                             </div> */}
-    
+
                                             <div className="ratio ratio-1x1 bg-black mb-2">
                                                 {obj.preview &&
                                                     <img src={obj.preview} style={{ objectFit: 'cover' }} className='w-100 h-100' alt="" />
                                                 }
                                             </div>
-    
+
                                             <div className='mb-2'>{obj.name}</div>
-    
+
                                             <ArticlesButton
                                                 className="w-100"
                                                 small
@@ -243,7 +206,7 @@ export default function PinballLandingPage(props) {
                                             >
                                                 Select
                                             </ArticlesButton>
-    
+
                                             <Link
                                                 className={`w-100`}
                                                 href={{
@@ -261,85 +224,27 @@ export default function PinballLandingPage(props) {
                                                     Play
                                                 </ArticlesButton>
                                             </Link>
-    
+
                                         </div>
                                     )
                                 })}
-    
+
                             </div>
-    
+
                         </div>
-    
+
                         <div className="card-footer d-flex flex-wrap justify-content-center">
-    
-                            <div className="d-flex w-50">
-                            <ArticlesButton
-                                className={`w-100`}
-                                small
-                                onClick={() => {
-                                    setShowSettingsModal(prev => !prev)
-                                }}
-                            >
-                                <i className="fad fa-cog"></i>
-                                Settings
-                            </ArticlesButton>
-                            <ArticlesButton
-                                className={``}
-                                small
-                                onClick={() => {
-                                    toggleDarkMode()
-                                }}
-                            >
-                                <i className="fad fa-moon"></i>
-                                {/* Dark Mode */}
-                            </ArticlesButton>
-                        </div>
-    
-                            <ArticlesButton
-                                className={`w-50`}
-                                small
-                                onClick={() => {
-                                    setShowInfoModal(true)
-                                }}
-                            >
-                                <i className="fad fa-info-square"></i>
-                                Info
-                            </ArticlesButton>
-    
-                            <Link
-                                href={'https://github.com/Articles-Joey/pinball'}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className='w-50'
-                            >
-                                <ArticlesButton
-                                    className={`w-100`}
-                                    small
-                                    onClick={() => {
-    
-                                    }}
-                                >
-                                    <i className="fab fa-github"></i>
-                                    Github
-                                </ArticlesButton>
-                            </Link>
-    
-                            <ArticlesButton
-                                className={`w-50`}
-                                small
-                                onClick={() => {
-                                    setShowCreditsModal(true)
-                                }}
-                            >
-                                <i className="fad fa-users"></i>
-                                Credits
-                            </ArticlesButton>
+
+                            <GameMenuPrimaryButtonGroup
+                                useStore={useStore}
+                                type="Landing"
+                            />
 
                             <div className='d-flex mt-3 w-100'>
                                 <div className="w-50">
                                     <ReturnToLauncherButton />
                                 </div>
-        
+
                                 <ArticlesButton
                                     className={`w-50`}
                                     small
@@ -351,19 +256,19 @@ export default function PinballLandingPage(props) {
                                     Wallpaper Mode
                                 </ArticlesButton>
                             </div>
-    
+
                         </div>
-    
+
                     </div>
-    
+
                     <div
                         className="machine-preview card card-articles card-sm"
                     >
-    
+
                         <div className='card-header d-flex align-items-center'>
-    
+
                             <span>Machine preview</span>
-    
+
                             {/* <div className="flex-grow-1">
     
                                 <div className="form-group articles mb-0">
@@ -378,16 +283,16 @@ export default function PinballLandingPage(props) {
                                 <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
     
                             </div> */}
-    
+
                         </div>
-    
+
                         <div className="card-body h-100 position-relative">
                             <div className="machine-preview-canvas-container bg-black p-2">
-    
-                                <MachinePreviewCanvas 
+
+                                <MachinePreviewCanvas
                                     key={machine}
                                 />
-    
+
                                 {/* {activeMachine?.machine_preview &&
                                     <img
                                         src={activeMachine.machine_preview}
@@ -396,10 +301,10 @@ export default function PinballLandingPage(props) {
                                         alt=""
                                     />
                                 } */}
-    
+
                             </div>
                         </div>
-    
+
                         <div className="card-footer d-flex flex-wrap justify-content-center">
                             <Link
                                 className={`w-100`}
@@ -419,9 +324,9 @@ export default function PinballLandingPage(props) {
                                 </ArticlesButton>
                             </Link>
                         </div>
-    
+
                     </div>
-                    
+
                 </div>
 
             </div>

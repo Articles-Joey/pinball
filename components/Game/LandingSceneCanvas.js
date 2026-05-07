@@ -18,6 +18,7 @@ import LowPolyPinballMachine from "@/components/Models/LowPolyPinballMachine"
 
 import { useHotkeys } from 'react-hotkeys-hook';
 import { ModelSciFiWoman } from "../Models/SciFi"
+import { useStore } from "@/hooks/useStore"
 
 
 const SLIDE_COUNT = 30;
@@ -26,6 +27,8 @@ const SLIDE_START = 0;
 const SLIDE_END = SLIDE_WIDTH * SLIDE_COUNT;
 
 function SlidingPinballMachines() {
+
+    const landingAnimation = useStore((state) => state.landingAnimation)
 
     // Precompute random booleans for each slot, so they don't change every frame
     const womanPresent = useMemo(
@@ -37,6 +40,8 @@ function SlidingPinballMachines() {
     const groupRef = useRef();
 
     useFrame((_, delta) => {
+        if (!landingAnimation) return;
+
         setPositions(prev => {
             // Move all positions left by speed*delta
             const speed = 1.5; // units per second
@@ -144,6 +149,9 @@ const LandingSceneCanvas = () => {
                 fov: 50,
             }}
         >
+
+            <fog attach="fog" args={['#000000', 10, 40]} />
+
             <Sky
                 {...{
                     sunPosition: [0, -0.5, 0],
