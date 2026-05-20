@@ -1,6 +1,6 @@
 @use "@/styles/components/global.scss" as *;
 
-.pinball-game-page {
+.game-page {
     position: relative;
     flex-grow: 1;
     display: flex;
@@ -21,22 +21,22 @@
         --top-position: 0px;
     }
 
-    .menu-bar {
-        height: 50px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: var(--card-background);
-        z-index: 2;
+    // .menu-bar {
+    //     height: 50px;
+    //     position: fixed;
+    //     bottom: 0;
+    //     left: 0;
+    //     width: 100%;
+    //     display: flex;
+    //     justify-content: center;
+    //     align-items: center;
+    //     background-color: var(--card-background);
+    //     z-index: 2;
 
-        @include media-breakpoint-up(lg) {
-            display: none;
-        }
-    }
+    //     @include media-breakpoint-up(lg) {
+    //         display: none;
+    //     }
+    // }
 
     .background {
         // background-repeat: repeat;
@@ -52,60 +52,60 @@
         // filter: blur(10px);
     }
 
-    .menu-card {
+    // .menu-card {
 
-        @include media-breakpoint-down(lg) {
-            display: flex;
-            position: fixed;
-            width: 100%;
-            height: calc(100vh - 50px);
-            overflow-y: auto;
-            top: var(--top-position);
-            left: 0;
-            transform: translateX(-100%);
-            transition-duration: 200ms;
-            z-index: 10;
-            flex-direction: column;
-            background-color: var(--card-background-75);
-            justify-content: end;
-            align-items: center;
-        }
+    //     @include media-breakpoint-down(lg) {
+    //         display: flex;
+    //         position: fixed;
+    //         width: 100%;
+    //         height: calc(100vh - 50px);
+    //         overflow-y: auto;
+    //         top: var(--top-position);
+    //         left: 0;
+    //         transform: translateX(-100%);
+    //         transition-duration: 200ms;
+    //         z-index: 10;
+    //         flex-direction: column;
+    //         background-color: var(--card-background-75);
+    //         justify-content: end;
+    //         align-items: center;
+    //     }
 
-        @include media-breakpoint-up(lg) {
-            display: initial;
-            // position: fixed;
-            // bottom: 0;
-            // left: 0;
-            // top: 50px;
-            flex-shrink: 0;
-            width: 300px;
-            padding: 1rem;
-            font-size: 0.8rem;
-            height: calc(100vh - var(--top-position));
-        }
+    //     @include media-breakpoint-up(lg) {
+    //         display: initial;
+    //         // position: fixed;
+    //         // bottom: 0;
+    //         // left: 0;
+    //         // top: 50px;
+    //         flex-shrink: 0;
+    //         width: 300px;
+    //         padding: 1rem;
+    //         font-size: 0.8rem;
+    //         height: calc(100vh - var(--top-position));
+    //     }
 
-        &.show {
-            transform: translateX(0%);
-        }
+    //     &.show {
+    //         transform: translateX(0%);
+    //     }
 
-        .menu-card-content {
-            width: 300px;
+    //     .menu-card-content {
+    //         width: 300px;
 
-            @include media-breakpoint-up(lg) {
-                width: 100%;
-            }
-        }
+    //         @include media-breakpoint-up(lg) {
+    //             width: 100%;
+    //         }
+    //     }
 
-        .camera-controls {
-            display: grid;
-            grid-gap: 5px 5px;
-            grid-template-columns: repeat(2, 1fr);
-        }
+    //     .camera-controls {
+    //         display: grid;
+    //         grid-gap: 5px 5px;
+    //         grid-template-columns: repeat(2, 1fr);
+    //     }
 
-    }
+    // }
 
     .game-content {
-        z-index: 1;
+        z-index: 0;
 
         // width: calc(100% - 300px);
         width: 100%;

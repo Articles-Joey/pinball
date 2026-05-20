@@ -14,10 +14,10 @@ import "@articles-media/articles-dev-box/dist/style.css";
 
 import "@articles-media/articles-gamepad-helper/dist/articles-gamepad-helper.css";
 
-import SocketLogicHandler from "@/components/SocketLogicHandler";
+import SocketLogicHandler from "@/components/Handlers/SocketLogicHandler";
 import LayoutClient from './layout-client';
-import PeerHandler from '@/components/PeerHandler';
-import GlobalClientModals from '@/components/UI/GlobalClientModals';
+import PeerHandler from '@/components/Handlers/PeerHandler';
+// import GlobalClientModals from '@/components/UI/GlobalClientModals';
 import { Suspense } from 'react';
 
 // const geistSans = Geist({
@@ -52,13 +52,12 @@ export default function RootLayout({ children }) {
         // className={`${geistSans.variable} ${geistMono.variable}`}
         data-bs-theme="dark"
       >
-
-        <SocketLogicHandler />
+        
         <PeerHandler />
         <LayoutClient />
 
         <Suspense>
-          <GlobalClientModals />
+          <SocketLogicHandler />
         </Suspense>
 
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>

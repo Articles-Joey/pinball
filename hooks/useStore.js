@@ -60,7 +60,7 @@ export const useStore = create()(
         }),
         {
             name: `${process.env.NEXT_PUBLIC_GAME_KEY}-store`,
-            version: 1,
+            version: 2,
             onRehydrateStorage: (state) => {
                 return () => state.setHasHydrated(true)
             },

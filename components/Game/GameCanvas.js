@@ -20,10 +20,14 @@ import { FlipperLeft } from "./FlipperLeft"
 import { FlipperRight } from "./FlipperRight"
 import { Spring } from "./Spring"
 import { ModelAsteroid } from "../Models/Space/Asteroid"
+import { useStore } from "@/hooks/useStore"
 
 const link = `${process.env.NEXT_PUBLIC_CDN}`
 
-function BallAndCollisions({ args = [1.2, 32, 32], v = new THREE.Vector3() }) {
+function BallAndCollisions({
+    args = [1.2, 32, 32],
+    v = new THREE.Vector3()
+}) {
 
     const cam = useRef()
 
@@ -199,6 +203,8 @@ const GameCanvas = () => {
         machine
     } = usePinballGameStore()
 
+    const debugMode = useStore(state => state.debugMode)
+
     function useKeyboard() {
         const keyMap = useRef({})
 
@@ -251,6 +257,7 @@ const GameCanvas = () => {
 
                 <Debug
                     color="red"
+                    scale={debugMode ? 1 : 0}
                 >
 
                     <HiddenCasing

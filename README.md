@@ -2,7 +2,7 @@
 
 ![Game Preview](/public/img/game-preview.gif)
 
-Play pinball machines in the browser powered by React.js and Three.js!
+Play pinball machines in the browser powered by React Three Fiber and Next.js!
 
 ## Getting Started
 
@@ -24,4 +24,4 @@ Aiming to have some multiplayer machines via P2P eventually.
 
 [Pinball Machine icon](https://www.flaticon.com/free-icon/pinball_7960368?related_id=7960355&origin=search)  
 [This Pinball Code Example](https://sbcode.net/react-three-fiber/pinball/)  
-[Player Models](https://quaternius.com/packs/ultimatemodularwomen.html)
+[Player Models](https://quaternius.com/packs/ultimatemodularwomen.html)  

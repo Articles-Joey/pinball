@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+const initialAudioSettings = {
+  enabled: true,
+  game_volume: 50,
+  music_volume: 50,
+}
+
 export const useAudioStore = create()(
   persist(
     (set, get) => ({
@@ -12,12 +18,11 @@ export const useAudioStore = create()(
         });
       },
 
-      audioSettings: {
-        enabled: true,
-        backgroundMusicVolume: 15,
-        soundEffectsVolume: 50,
-      },
+      audioSettings: initialAudioSettings,
       setAudioSettings: (newValue) => set({ audioSettings: newValue }),
+      resetAudioSettings: () => set({
+        audioSettings: initialAudioSettings
+      }),
 
     }),
     {
