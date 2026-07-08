@@ -10,6 +10,8 @@ import useTouchControlsStore from "@/hooks/useTouchControlsStore";
 import DarkModeHandler from "@articles-media/articles-dev-box/DarkModeHandler";
 import GlobalBody from '@articles-media/articles-dev-box/GlobalBody';
 import GlobalClientModals from '@articles-media/articles-dev-box/GlobalClientModals';
+import HotkeyHandler from '@articles-media/articles-dev-box/HotkeyHandler';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 export default function LayoutClient({
 
@@ -24,6 +26,12 @@ export default function LayoutClient({
                 useStore={useStore}
             />
             <Suspense>
+
+                <HotkeyHandler
+                    useStore={useStore}
+                    useHotkeys={useHotkeys}
+                />
+
                 <GlobalClientModals
                     useStore={useStore}
                     useAudioStore={useAudioStore}
@@ -78,6 +86,7 @@ export default function LayoutClient({
                         previewImage: darkMode ? "img/game-preview.gif" : "img/game-preview.gif",
                     }}
                 />
+
             </Suspense>
         </>
     );
