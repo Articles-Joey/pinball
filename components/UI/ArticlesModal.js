@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Button, Modal } from "react-bootstrap"
+import { Button, Modal } from "react-bootstrap";
 import ArticlesButton from "./Button";
 
 export default function ArticlesModal({
@@ -20,10 +20,9 @@ export default function ArticlesModal({
     centered,
     scrollable,
     size,
-    actionVariant
+    actionVariant,
 }) {
-
-    const [showModal, setShowModal] = useState(true)
+    const [showModal, setShowModal] = useState(true);
 
     // Notes
     // Assumes always centered
@@ -38,74 +37,63 @@ export default function ArticlesModal({
         <>
             <Modal
                 className={`articles-modal ${modalClassName}`}
-                size={size || 'md'}
+                size={size || "md"}
                 show={showModal}
                 centered={centered === false ? false : true}
                 backdrop={backdrop}
                 scrollable={scrollable === false ? false : true}
                 onExited={() => {
-                    setShow(false)
+                    setShow(false);
                 }}
                 onHide={() => {
-
                     if (!disableClose) {
-                        setShowModal(false)
+                        setShowModal(false);
                     }
-
                 }}
             >
-
                 <Modal.Header closeButton={disableClose ? false : true}>
-                    <Modal.Title>{title ? title : 'Info'}</Modal.Title>
+                    <Modal.Title>{title ? title : "Info"}</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body className={className}>
-
-                    {children ? children : '...'}
-
+                    {children ? children : "..."}
                 </Modal.Body>
 
                 <Modal.Footer className="justify-content-between">
-
                     {!action && <div></div>}
 
                     <div>
-                        {(!disableClose || closeAction) &&
+                        {(!disableClose || closeAction) && (
                             <ArticlesButton
                                 variant="outline-dark"
                                 onClick={() => {
-
                                     if (closeAction) {
-                                        closeAction()
+                                        closeAction();
                                     } else {
-                                        setShowModal(false)
+                                        setShowModal(false);
                                     }
-                                    
                                 }}
                             >
                                 {/* Close */}
-                                {closeText || 'Close'}
+                                {closeText || "Close"}
                             </ArticlesButton>
-                        }
+                        )}
                     </div>
 
-                    {action &&
+                    {action && (
                         <ArticlesButton
                             variant={actionVariant ? actionVariant : "articles"}
                             disabled={disableAction}
                             onClick={() => {
-                                console.log('action')
-                                action(setShowModal)
+                                console.log("action");
+                                action(setShowModal);
                             }}
                         >
-                            {actionText || 'Continue'}
+                            {actionText || "Continue"}
                         </ArticlesButton>
-                    }
-
+                    )}
                 </Modal.Footer>
-
             </Modal>
         </>
-    )
-
+    );
 }

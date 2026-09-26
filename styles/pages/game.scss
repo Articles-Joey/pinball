@@ -154,7 +154,9 @@
                     display: none;
                 }
 
-                .left-bumper, .right-bumper, .launch {
+                .left-bumper,
+                .right-bumper,
+                .launch {
                     margin: 0.75rem;
                     width: 100px;
                     height: 100px;
@@ -185,7 +187,6 @@
                 }
             }
         }
-
     }
 
     .ad-wrap {
@@ -195,5 +196,4 @@
             display: block;
         }
     }
-
 }

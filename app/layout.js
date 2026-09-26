@@ -1,9 +1,9 @@
 // import { Geist, Geist_Mono } from "next/font/google";
 
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme';
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import theme from "@/theme";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -15,10 +15,10 @@ import "@articles-media/articles-dev-box/dist/style.css";
 import "@articles-media/articles-gamepad-helper/dist/articles-gamepad-helper.css";
 
 import SocketLogicHandler from "@/components/Handlers/SocketLogicHandler";
-import LayoutClient from './layout-client';
-import PeerHandler from '@/components/Handlers/PeerHandler';
+import LayoutClient from "./layout-client";
+import PeerHandler from "@/components/Handlers/PeerHandler";
 // import GlobalClientModals from '@/components/UI/GlobalClientModals';
-import { Suspense } from 'react';
+import { Suspense } from "react";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -31,43 +31,39 @@ import { Suspense } from 'react';
 // });
 
 export const metadata = {
-  title: "Pinball",
-  description: "",
+    title: "Pinball",
+    description: "",
 };
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
+    return (
+        <html lang="en">
+            <head>
+                <link
+                    rel="stylesheet"
+                    href={`${process.env.NEXT_PUBLIC_CDN}fonts/fontawsome/css/all.min.css`}
+                />
+            </head>
 
-      <head>
+            <body
+                // className={`${geistSans.variable} ${geistMono.variable}`}
+                data-bs-theme="dark"
+            >
+                <PeerHandler />
+                <LayoutClient />
 
-        <link
-          rel="stylesheet"
-          href={`${process.env.NEXT_PUBLIC_CDN}fonts/fontawsome/css/all.min.css`}
-        />
+                <Suspense>
+                    <SocketLogicHandler />
+                </Suspense>
 
-      </head>
-
-      <body
-        // className={`${geistSans.variable} ${geistMono.variable}`}
-        data-bs-theme="dark"
-      >
-        
-        <PeerHandler />
-        <LayoutClient />
-
-        <Suspense>
-          <SocketLogicHandler />
-        </Suspense>
-
-        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
-        </AppRouterCacheProvider>
-      </body>
-    </html>
-  );
+                <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+                    <ThemeProvider theme={theme}>
+                        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+                        <CssBaseline />
+                        {children}
+                    </ThemeProvider>
+                </AppRouterCacheProvider>
+            </body>
+        </html>
+    );
 }

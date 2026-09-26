@@ -1,9 +1,10 @@
-@use 'sass:color';
+@use "sass:color";
 @use "./global.scss" as *;
 @use "@/styles/components/variables" as *;
 // @use "../base/variables" as *;
 
-[data-theme='Dark'], [data-bs-theme='dark'] {
+[data-theme="Dark"],
+[data-bs-theme="dark"] {
     .btn-articles {
         background-color: var(--articles-secondary-color);
         background-color: rgb(70, 70, 70);
@@ -59,7 +60,7 @@
 }
 
 .btn-warning {
-    color: #000!important;
+    color: #000 !important;
     border-bottom: 3px solid rgb(255, 88, 46);
 }
 
@@ -248,11 +249,12 @@
         text-shadow: 0px 0px 4px black;
     }
 
-    &:active, &:focus {
-        color: #fff!important;
+    &:active,
+    &:focus {
+        color: #fff !important;
         text-shadow: 0px 0px 4px black;
         outline-color: transparent;
-        outline-style:solid;
+        outline-style: solid;
         box-shadow: 0 0 0 4px #797979;
         transition: 0.7s;
     }

@@ -1,6 +1,6 @@
 "use client";
-import { Suspense } from 'react';
-import packageInfo from '@/package.json';
+import { Suspense } from "react";
+import packageInfo from "@/package.json";
 
 import { useAudioStore } from "@/hooks/useAudioStore";
 import { useSocketStore } from "@/hooks/useSocketStore";
@@ -8,25 +8,19 @@ import { useStore } from "@/hooks/useStore";
 import useTouchControlsStore from "@/hooks/useTouchControlsStore";
 
 import DarkModeHandler from "@articles-media/articles-dev-box/DarkModeHandler";
-import GlobalBody from '@articles-media/articles-dev-box/GlobalBody';
-import GlobalClientModals from '@articles-media/articles-dev-box/GlobalClientModals';
-import HotkeyHandler from '@articles-media/articles-dev-box/HotkeyHandler';
-import { useHotkeys } from 'react-hotkeys-hook';
+import GlobalBody from "@articles-media/articles-dev-box/GlobalBody";
+import GlobalClientModals from "@articles-media/articles-dev-box/GlobalClientModals";
+import HotkeyHandler from "@articles-media/articles-dev-box/HotkeyHandler";
+import { useHotkeys } from "react-hotkeys-hook";
 
-export default function LayoutClient({
-
-}) {
-
+export default function LayoutClient({}) {
     const darkMode = useStore((state) => state?.darkMode);
 
     return (
         <>
             <GlobalBody />
-            <DarkModeHandler
-                useStore={useStore}
-            />
+            <DarkModeHandler useStore={useStore} />
             <Suspense>
-
                 <HotkeyHandler
                     useStore={useStore}
                     useHotkeys={useHotkeys}
@@ -41,23 +35,38 @@ export default function LayoutClient({
                     packageInfo={packageInfo}
                     settingsModalConfig={{
                         tabs: {
-                            'Graphics': {
+                            Graphics: {
                                 darkMode: true,
-                                landingAnimation: true
+                                landingAnimation: true,
                             },
-                            'Audio': {
+                            Audio: {
                                 sliders: [
-                                    ...useAudioStore.getState().audioSettings ?
-                                        Object.keys(useAudioStore.getState().audioSettings).filter(key => key !== "enabled").map(key => ({
-                                            key,
-                                            label: key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-                                        }))
-                                        :
-                                        [],
-                                ]
+                                    ...(useAudioStore.getState().audioSettings
+                                        ? Object.keys(
+                                              useAudioStore.getState()
+                                                  .audioSettings,
+                                          )
+                                              .filter(
+                                                  (key) => key !== "enabled",
+                                              )
+                                              .map((key) => ({
+                                                  key,
+                                                  label: key
+                                                      .split("_")
+                                                      .map(
+                                                          (word) =>
+                                                              word
+                                                                  .charAt(0)
+                                                                  .toUpperCase() +
+                                                              word.slice(1),
+                                                      )
+                                                      .join(" "),
+                                              }))
+                                        : []),
+                                ],
                             },
-                            'Controls': {
-                                touchControls: true
+                            Controls: {
+                                touchControls: true,
                                 // defaultKeyBindings: {
                                 //     // moveUp: "W",
                                 //     // moveDown: "S",
@@ -65,28 +74,27 @@ export default function LayoutClient({
                                 //     // moveRight: "D",
                                 // }
                             },
-                            'Multiplayer': {
+                            Multiplayer: {
                                 // serverUrl: true,
                             },
-                            'Other': {
+                            Other: {
                                 // toontownMode: true,
                             },
-                            'Debug': {
+                            Debug: {
                                 showStats: true,
-                                children: <>
-
-                                </>,
-                            }
+                                children: <></>,
+                            },
                         },
                         reset: () => {
                             useAudioStore.getState().resetAudioSettings();
-                        }
+                        },
                     }}
                     infoModalConfig={{
-                        previewImage: darkMode ? "img/game-preview.gif" : "img/game-preview.gif",
+                        previewImage: darkMode
+                            ? "img/game-preview.gif"
+                            : "img/game-preview.gif",
                     }}
                 />
-
             </Suspense>
         </>
     );

@@ -3,7 +3,6 @@
 import classNames from "classnames";
 
 export default function ArticlesButton(props) {
-
     const {
         size,
         variant,
@@ -20,14 +19,12 @@ export default function ArticlesButton(props) {
         onMouseUp,
         onMouseLeave,
         onTouchStart,
-        onTouchEnd
+        onTouchEnd,
     } = props;
 
     return (
         <button
-            {
-                ...(type && {type: 'submit'})
-            }
+            {...(type && { type: "submit" })}
             disabled={disabled}
             style={style}
             onMouseDown={onMouseDown}
@@ -36,21 +33,19 @@ export default function ArticlesButton(props) {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
             // data-react-component='true'
-            className={
-                classNames(
-                    `btn ${variant ? `btn-${variant}` : 'btn-articles'}`,
-                    {
-                        [className]: className,
-                        'btn-lg': large,
-                        'btn-sm': small,
-                        'active': active,
-                        [`btn-${size}`]: size 
-                    }
-                )
-            }
+            className={classNames(
+                `btn ${variant ? `btn-${variant}` : "btn-articles"}`,
+                {
+                    [className]: className,
+                    "btn-lg": large,
+                    "btn-sm": small,
+                    active: active,
+                    [`btn-${size}`]: size,
+                },
+            )}
             onClick={onClick}
         >
             {props.children}
         </button>
-    )
+    );
 }

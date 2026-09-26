@@ -1,23 +1,48 @@
-import * as THREE from "three"
-import { forwardRef, memo, use, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { PerspectiveCamera, RoundedBox, Environment, useTexture, useAspect, OrbitControls, Sky, Text } from "@react-three/drei"
-import { Physics, useSphere, useBox, usePlane, useCompoundBody, useContactMaterial, Debug } from "@react-three/cannon"
-import { usePinballGameStore } from "@/hooks/usePinballGameStore"
+import * as THREE from "three";
+import {
+    forwardRef,
+    memo,
+    use,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+    PerspectiveCamera,
+    RoundedBox,
+    Environment,
+    useTexture,
+    useAspect,
+    OrbitControls,
+    Sky,
+    Text,
+} from "@react-three/drei";
+import {
+    Physics,
+    useSphere,
+    useBox,
+    usePlane,
+    useCompoundBody,
+    useContactMaterial,
+    Debug,
+} from "@react-three/cannon";
+import { usePinballGameStore } from "@/hooks/usePinballGameStore";
 
-import { StoreModelH3H3SigmaBrain } from "@/components/Models/H3/SigmaBrain"
+import { StoreModelH3H3SigmaBrain } from "@/components/Models/H3/SigmaBrain";
 
-import { degToRad, lerp } from "three/src/math/MathUtils"
-import { H3StandaloneAudioButton } from "@/components/Models/H3/StandaloneAudioButton"
-import { H3StandaloneVideoButton } from "@/components/Models/H3/StandaloneVideoButton"
-import { ModelKennyNLFoodBurgerCheeseDouble } from "@/components/Models/burger-cheese-double"
-import { ModelJToastieBasicSpaceship } from "@/components/Models/Basic Spaceship"
-import { StoreModelH3H3MeatMountain } from "@/components/Models/H3/MeatMountain"
+import { degToRad, lerp } from "three/src/math/MathUtils";
+import { H3StandaloneAudioButton } from "@/components/Models/H3/StandaloneAudioButton";
+import { H3StandaloneVideoButton } from "@/components/Models/H3/StandaloneVideoButton";
+import { ModelKennyNLFoodBurgerCheeseDouble } from "@/components/Models/burger-cheese-double";
+import { ModelJToastieBasicSpaceship } from "@/components/Models/Basic Spaceship";
+import { StoreModelH3H3MeatMountain } from "@/components/Models/H3/MeatMountain";
 
-import LowPolyPinballMachine from "@/components/Models/LowPolyPinballMachine"
+import LowPolyPinballMachine from "@/components/Models/LowPolyPinballMachine";
 
-import { useHotkeys } from 'react-hotkeys-hook';
-
+import { useHotkeys } from "react-hotkeys-hook";
 
 const SLIDE_COUNT = 30;
 const SLIDE_WIDTH = 2; // must match spacing in original code
@@ -25,33 +50,40 @@ const SLIDE_START = 0;
 const SLIDE_END = SLIDE_WIDTH * SLIDE_COUNT;
 
 function SlidingPinballMachines() {
-
-    const [positions, setPositions] = useState(() => Array.from({ length: SLIDE_COUNT }, (_, i) => SLIDE_WIDTH * i));
+    const [positions, setPositions] = useState(() =>
+        Array.from({ length: SLIDE_COUNT }, (_, i) => SLIDE_WIDTH * i),
+    );
     const groupRef = useRef();
 
     useFrame((_, delta) => {
-        setPositions(prev => {
+        setPositions((prev) => {
             // Move all positions left by speed*delta
             const speed = 1.5; // units per second
-            let newPositions = prev.map(x => x - speed * delta);
+            let newPositions = prev.map((x) => x - speed * delta);
             // If any go past left bound, recycle to right
-            newPositions = newPositions.map(x => (x < -SLIDE_WIDTH ? x + SLIDE_END : x));
+            newPositions = newPositions.map((x) =>
+                x < -SLIDE_WIDTH ? x + SLIDE_END : x,
+            );
             return newPositions;
         });
     });
 
     return (
-        <group ref={groupRef} position={[-2.5, -1, 0]}>
+        <group
+            ref={groupRef}
+            position={[-2.5, -1, 0]}
+        >
             {positions.map((x, i) => (
-                <group key={i} position={[x, 0, 0]}>
-
+                <group
+                    key={i}
+                    position={[x, 0, 0]}
+                >
                     <LowPolyPinballMachine
                         key={i}
                         scale={0.1}
                     />
 
                     <WallAndFloor />
-
                 </group>
             ))}
         </group>
@@ -59,13 +91,16 @@ function SlidingPinballMachines() {
 }
 
 function WallAndFloor() {
-
     const randomColorGameFloor = useMemo(() => {
-        const randomHex = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        const randomHex = () =>
+            "#" +
+            Math.floor(Math.random() * 16777215)
+                .toString(16)
+                .padStart(6, "0");
         return randomHex();
     }, []);
 
-    const base_link = `${process.env.NEXT_PUBLIC_CDN}games/Assassin/wall-tile.webp`
+    const base_link = `${process.env.NEXT_PUBLIC_CDN}games/Assassin/wall-tile.webp`;
 
     const texture = useTexture({
         map: `${base_link}`,
@@ -73,19 +108,22 @@ function WallAndFloor() {
         // normalMap: `${base_link}GroundSand005_NRM_1K.jpg`,
         // roughnessMap: `${base_link}GroundSand005_BUMP_1K.jpg`,
         // aoMap: `${base_link}GroundSand005_AO_1K.jpg`,
-    })
+    });
 
     texture.map.repeat.set(15, 30);
     texture.map.wrapS = texture.map.wrapT = THREE.RepeatWrapping;
 
     const randomLightColor = useMemo(() => {
-        const randomHex = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        const randomHex = () =>
+            "#" +
+            Math.floor(Math.random() * 16777215)
+                .toString(16)
+                .padStart(6, "0");
         return randomHex();
     }, []);
 
     return (
         <group>
-
             {/* Light */}
             <pointLight
                 intensity={3}
@@ -94,9 +132,7 @@ function WallAndFloor() {
             />
 
             {/* Floor */}
-            <mesh
-                rotation={[degToRad(-90), 0, 0]}
-            >
+            <mesh rotation={[degToRad(-90), 0, 0]}>
                 <planeGeometry args={[2, 10]} />
                 <meshStandardMaterial color={randomColorGameFloor} />
             </mesh>
@@ -110,36 +146,30 @@ function WallAndFloor() {
                 <meshStandardMaterial {...texture} />
                 {/* <meshStandardMaterial color={randomColorGameFloor} /> */}
             </mesh>
-
         </group>
-    )
-
+    );
 }
 
 function CustomOrbitControls() {
-
-    const controlsRef = useRef()
+    const controlsRef = useRef();
 
     useEffect(() => {
         if (controlsRef.current) {
-            controlsRef.current.target.set(0, 1, 0)
+            controlsRef.current.target.set(0, 1, 0);
         }
-    }, [])
+    }, []);
 
-    return (
-        <OrbitControls ref={controlsRef} />
-    )
+    return <OrbitControls ref={controlsRef} />;
 }
 
 const MachinePreviewCanvas = () => {
+    const machine = usePinballGameStore((state) => state.machine);
 
-    const machine = usePinballGameStore(state => state.machine);
+    const [reloadableKey, setReloadableKey] = useState(0);
 
-    const [reloadableKey, setReloadableKey] = useState(0)
-
-    useHotkeys('r', () => {
-        setReloadableKey((prev) => prev + 1)
-    })
+    useHotkeys("r", () => {
+        setReloadableKey((prev) => prev + 1);
+    });
 
     return (
         <Canvas
@@ -150,7 +180,6 @@ const MachinePreviewCanvas = () => {
                 fov: 60,
             }}
         >
-
             <CustomOrbitControls />
 
             <Sky
@@ -162,7 +191,7 @@ const MachinePreviewCanvas = () => {
                     mieDirectionalG: 0.99,
                     inclination: 0.8,
                     azimuth: 0.25,
-                    exposure: 0.2
+                    exposure: 0.2,
                 }}
             />
 
@@ -173,9 +202,7 @@ const MachinePreviewCanvas = () => {
                 scale={0.1}
             />
 
-            <mesh 
-                position={[0, 2, -0.01]}
-            >
+            <mesh position={[0, 2, -0.01]}>
                 <planeGeometry args={[3, 0.3]} />
                 <meshBasicMaterial color="red" />
             </mesh>
@@ -205,9 +232,8 @@ const MachinePreviewCanvas = () => {
                 shadow-camera-top={10}
                 shadow-camera-bottom={-10}
             /> */}
-
         </Canvas>
-    )
-}
+    );
+};
 
-export default memo(MachinePreviewCanvas)
+export default memo(MachinePreviewCanvas);

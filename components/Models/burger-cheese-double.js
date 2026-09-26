@@ -4,17 +4,23 @@ Command: npx gltfjsx@6.5.0 models\burger-cheese-double.glb --output output\burge
 Files: models\burger-cheese-double.glb [44.42KB] > E:\Downloads\kenney_food-kit\JSX\output\burger-cheese-double-transformed.glb [5.46KB] (88%)
 */
 
-import React from 'react'
-import { useGLTF } from '@react-three/drei'
+import React from "react";
+import { useGLTF } from "@react-three/drei";
 const link = `${process.env.NEXT_PUBLIC_CDN}games/Assets/KennyNL/Food/Models/burger-cheese-double-transformed.glb`;
 
 export function ModelKennyNLFoodBurgerCheeseDouble(props) {
-  const { nodes, materials } = useGLTF(link)
-  return (
-    <group {...props} dispose={null}>
-      <mesh geometry={nodes['bun-bottom'].geometry} material={materials.colormap} />
-    </group>
-  )
+    const { nodes, materials } = useGLTF(link);
+    return (
+        <group
+            {...props}
+            dispose={null}
+        >
+            <mesh
+                geometry={nodes["bun-bottom"].geometry}
+                material={materials.colormap}
+            />
+        </group>
+    );
 }
 
-useGLTF.preload(link)
+useGLTF.preload(link);

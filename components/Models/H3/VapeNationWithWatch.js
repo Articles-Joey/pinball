@@ -1,34 +1,89 @@
-import React from 'react'
-import { useGLTF } from '@react-three/drei'
+import React from "react";
+import { useGLTF } from "@react-three/drei";
 
-import { useGraph } from '@react-three/fiber'
-import { SkeletonUtils } from 'three-stdlib'
+import { useGraph } from "@react-three/fiber";
+import { SkeletonUtils } from "three-stdlib";
 
-const link = `${process.env.NEXT_PUBLIC_CDN}games/Epcot/Store/Property Items/66cf7622d540c9c70e00bced/c4cb6644-a12b-4f15-bf38-14fe563ec17c.glb`
+const link = `${process.env.NEXT_PUBLIC_CDN}games/Epcot/Store/Property Items/66cf7622d540c9c70e00bced/c4cb6644-a12b-4f15-bf38-14fe563ec17c.glb`;
 
 export function StoreModelH3H3VapeNationWithWatch(props) {
-
-    const { scene } = useGLTF(link)
-    const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
-    const { nodes, materials } = useGraph(clone)
+    const { scene } = useGLTF(link);
+    const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
+    const { nodes, materials } = useGraph(clone);
 
     return (
-        <group {...props} dispose={null}>
+        <group
+            {...props}
+            dispose={null}
+        >
             <primitive object={nodes.Bone} />
             <primitive object={nodes.Bone_1} />
             <primitive object={nodes.Bone_2} />
             <primitive object={nodes.Bone_3} />
-            <mesh geometry={nodes.Cylinder.geometry} material={materials.PaletteMaterial001} position={[-0.106, 1.242, -3.035]} scale={[1.798, 0.324, 1.585]} />
-            <skinnedMesh geometry={nodes.mesh004.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh004.skeleton} position={[-3.067, 5.94, -0.054]} rotation={[1.114, 0.052, 2.895]} />
-            <skinnedMesh geometry={nodes.mesh005.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh005.skeleton} position={[-3.067, 5.94, -0.054]} rotation={[1.114, 0.052, 2.895]} />
-            <skinnedMesh geometry={nodes.mesh006.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh006.skeleton} position={[-3.067, 5.94, -0.054]} rotation={[1.114, 0.052, 2.895]} />
-            <skinnedMesh geometry={nodes.mesh007.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh007.skeleton} position={[-3.067, 5.94, -0.054]} rotation={[1.114, 0.052, 2.895]} />
-            <skinnedMesh geometry={nodes.mesh.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh.skeleton} position={[0, 5.575, 0]} rotation={[-1.095, 0.013, -0.118]} />
-            <skinnedMesh geometry={nodes.mesh001.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh001.skeleton} position={[0, 5.575, 0]} rotation={[-1.095, 0.013, -0.118]} />
-            <skinnedMesh geometry={nodes.mesh002.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh002.skeleton} position={[0, 5.575, 0]} rotation={[-1.095, 0.013, -0.118]} />
-            <skinnedMesh geometry={nodes.mesh003.geometry} material={materials.PaletteMaterial001} skeleton={nodes.mesh003.skeleton} position={[0, 5.575, 0]} rotation={[-1.095, 0.013, -0.118]} />
+            <mesh
+                geometry={nodes.Cylinder.geometry}
+                material={materials.PaletteMaterial001}
+                position={[-0.106, 1.242, -3.035]}
+                scale={[1.798, 0.324, 1.585]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh004.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh004.skeleton}
+                position={[-3.067, 5.94, -0.054]}
+                rotation={[1.114, 0.052, 2.895]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh005.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh005.skeleton}
+                position={[-3.067, 5.94, -0.054]}
+                rotation={[1.114, 0.052, 2.895]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh006.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh006.skeleton}
+                position={[-3.067, 5.94, -0.054]}
+                rotation={[1.114, 0.052, 2.895]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh007.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh007.skeleton}
+                position={[-3.067, 5.94, -0.054]}
+                rotation={[1.114, 0.052, 2.895]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh.skeleton}
+                position={[0, 5.575, 0]}
+                rotation={[-1.095, 0.013, -0.118]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh001.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh001.skeleton}
+                position={[0, 5.575, 0]}
+                rotation={[-1.095, 0.013, -0.118]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh002.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh002.skeleton}
+                position={[0, 5.575, 0]}
+                rotation={[-1.095, 0.013, -0.118]}
+            />
+            <skinnedMesh
+                geometry={nodes.mesh003.geometry}
+                material={materials.PaletteMaterial001}
+                skeleton={nodes.mesh003.skeleton}
+                position={[0, 5.575, 0]}
+                rotation={[-1.095, 0.013, -0.118]}
+            />
         </group>
-    )
+    );
 
     // const { nodes, materials } = useGLTF(link)
 
@@ -156,7 +211,6 @@ export function StoreModelH3H3VapeNationWithWatch(props) {
     //         </group>
     //     </group>
     // )
-
 }
 
-useGLTF.preload(link)
+useGLTF.preload(link);

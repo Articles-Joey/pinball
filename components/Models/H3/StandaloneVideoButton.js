@@ -1,13 +1,15 @@
-import { useGLTF } from '@react-three/drei'
+import { useGLTF } from "@react-three/drei";
 
-const link = `${process.env.NEXT_PUBLIC_CDN}games/Pinball/H3H3/h3h3-button-standalone-video.glb`
+const link = `${process.env.NEXT_PUBLIC_CDN}games/Pinball/H3H3/h3h3-button-standalone-video.glb`;
 
 export function H3StandaloneVideoButton(props) {
-
-    const { nodes, materials } = useGLTF(link)
+    const { nodes, materials } = useGLTF(link);
 
     return (
-        <group {...props} dispose={null}>
+        <group
+            {...props}
+            dispose={null}
+        >
             <mesh
                 castShadow
                 receiveShadow
@@ -20,7 +22,7 @@ export function H3StandaloneVideoButton(props) {
                 castShadow
                 receiveShadow
                 geometry={nodes.Cylinder003.geometry}
-                material={materials['Unit Base']}
+                material={materials["Unit Base"]}
                 position={[0.018, 0.481, 0]}
                 scale={[0.601, 0.296, 0.601]}
             />
@@ -41,8 +43,7 @@ export function H3StandaloneVideoButton(props) {
                 scale={0.701}
             />
         </group>
-    )
-
+    );
 }
 
-useGLTF.preload(link)
+useGLTF.preload(link);

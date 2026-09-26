@@ -1,47 +1,47 @@
 "use client";
-import { useAudioStore } from '@/hooks/useAudioStore';
-import { useSocketStore } from '@/hooks/useSocketStore';
+import { useAudioStore } from "@/hooks/useAudioStore";
+import { useSocketStore } from "@/hooks/useSocketStore";
 // import { useAudioStore } from '@/hooks/useAudioStore';
-import { useStore } from '@/hooks/useStore';
-import useTouchControlsStore from '@/hooks/useTouchControlsStore';
-import dynamic from 'next/dynamic'
+import { useStore } from "@/hooks/useStore";
+import useTouchControlsStore from "@/hooks/useTouchControlsStore";
+import dynamic from "next/dynamic";
 
-const InfoModal = dynamic(
-    () => import('@/components/UI/InfoModal'),
-    { ssr: false }
-)
+const InfoModal = dynamic(() => import("@/components/UI/InfoModal"), {
+    ssr: false,
+});
 
 const SettingsModal = dynamic(
-    () => import('@articles-media/articles-dev-box/SettingsModal'),
-    { ssr: false }
-)
+    () => import("@articles-media/articles-dev-box/SettingsModal"),
+    { ssr: false },
+);
 
 const CreditsModal = dynamic(
-    () => import('@articles-media/articles-dev-box/CreditsModal'),
-    { ssr: false }
-)
+    () => import("@articles-media/articles-dev-box/CreditsModal"),
+    { ssr: false },
+);
 
 export default function GlobalClientModals() {
+    const showInfoModal = useStore((state) => state.showInfoModal);
+    const setShowInfoModal = useStore((state) => state.setShowInfoModal);
 
-    const showInfoModal = useStore((state) => state.showInfoModal)
-    const setShowInfoModal = useStore((state) => state.setShowInfoModal)
+    const showSettingsModal = useStore((state) => state.showSettingsModal);
+    const setShowSettingsModal = useStore(
+        (state) => state.setShowSettingsModal,
+    );
 
-    const showSettingsModal = useStore((state) => state.showSettingsModal)
-    const setShowSettingsModal = useStore((state) => state.setShowSettingsModal)
-
-    const showCreditsModal = useStore((state) => state.showCreditsModal)
-    const setShowCreditsModal = useStore((state) => state.setShowCreditsModal)
+    const showCreditsModal = useStore((state) => state.showCreditsModal);
+    const setShowCreditsModal = useStore((state) => state.setShowCreditsModal);
 
     return (
         <>
-            {showInfoModal &&
+            {showInfoModal && (
                 <InfoModal
                     show={showInfoModal}
                     setShow={setShowInfoModal}
                 />
-            }
+            )}
 
-            {showSettingsModal &&
+            {showSettingsModal && (
                 <SettingsModal
                     show={showSettingsModal}
                     setShow={setShowSettingsModal}
@@ -51,24 +51,24 @@ export default function GlobalClientModals() {
                     useSocketStore={useSocketStore}
                     config={{
                         tabs: {
-                            'Graphics': {
+                            Graphics: {
                                 darkMode: true,
-                                landingAnimation: true
+                                landingAnimation: true,
                             },
-                            'Audio': {
+                            Audio: {
                                 sliders: [
                                     {
                                         key: "gameVolume",
-                                        label: "Game Volume"
+                                        label: "Game Volume",
                                     },
                                     {
                                         key: "musicVolume",
-                                        label: "Music Volume"
-                                    }
-                                ]
+                                        label: "Music Volume",
+                                    },
+                                ],
                             },
-                            'Controls': {
-                                touchControls: true
+                            Controls: {
+                                touchControls: true,
                                 // defaultKeyBindings: {
                                 //     // moveUp: "W",
                                 //     // moveDown: "S",
@@ -76,23 +76,23 @@ export default function GlobalClientModals() {
                                 //     // moveRight: "D",
                                 // }
                             },
-                            'Multiplayer': {
+                            Multiplayer: {
                                 serverUrl: true,
                             },
-                            'Other': {
+                            Other: {
                                 toontownMode: true,
-                            }
-                        }
+                            },
+                        },
                     }}
                 />
-            }
+            )}
 
-            {showCreditsModal &&
+            {showCreditsModal && (
                 <CreditsModal
                     show={showCreditsModal}
                     setShow={setShowCreditsModal}
                 />
-            }
+            )}
         </>
-    )
+    );
 }

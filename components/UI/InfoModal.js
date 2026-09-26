@@ -1,22 +1,17 @@
 import { useEffect, useState } from "react";
 
 import Image from "next/image";
-import dynamic from 'next/dynamic'
+import dynamic from "next/dynamic";
 
 // import { useSelector } from 'react-redux'
 
-import { Modal } from "react-bootstrap"
+import { Modal } from "react-bootstrap";
 
 import IsDev from "@/components/UI/IsDev";
 import ArticlesButton from "./Button";
 
-export default function GameInfoModal({
-    show,
-    setShow,
-    credits
-}) {
-
-    const [showModal, setShowModal] = useState(true)
+export default function GameInfoModal({ show, setShow, credits }) {
+    const [showModal, setShowModal] = useState(true);
 
     return (
         <>
@@ -34,44 +29,38 @@ export default function GameInfoModal({
 
             <Modal
                 className="articles-modal games-info-modal"
-                size='md'
+                size="md"
                 show={showModal}
                 centered
                 scrollable
                 onExited={() => {
-                    setShow(false)
+                    setShow(false);
                 }}
                 onHide={() => {
-                    setShowModal(false)
+                    setShowModal(false);
                 }}
             >
-
                 <Modal.Header closeButton>
                     <Modal.Title>Game Info</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body className="flex-column p-0">
-
-                    <div className="p-3">
-                        
-                    </div>
-
+                    <div className="p-3"></div>
                 </Modal.Body>
 
                 <Modal.Footer className="justify-content-between">
-
                     <div></div>
 
-                    <ArticlesButton variant="outline-dark" onClick={() => {
-                        setShow(false)
-                    }}>
+                    <ArticlesButton
+                        variant="outline-dark"
+                        onClick={() => {
+                            setShow(false);
+                        }}
+                    >
                         Close
                     </ArticlesButton>
-
                 </Modal.Footer>
-
             </Modal>
         </>
-    )
-
+    );
 }

@@ -1,19 +1,23 @@
-import React from 'react'
-import { useGLTF } from '@react-three/drei'
+import React from "react";
+import { useGLTF } from "@react-three/drei";
 
-const link = `${process.env.NEXT_PUBLIC_CDN}games/Epcot/Store/Property Items/66c4e6743adee4c852c79364/3fd1117f-6c6e-4fb6-a1d7-ae0024cd0bcd.glb`
+const link = `${process.env.NEXT_PUBLIC_CDN}games/Epcot/Store/Property Items/66c4e6743adee4c852c79364/3fd1117f-6c6e-4fb6-a1d7-ae0024cd0bcd.glb`;
 
 export function StoreModelH3H3TheButton(props) {
-
-    const { nodes, materials } = useGLTF(link)
+    const { nodes, materials } = useGLTF(link);
 
     return (
-        <group {...props} dispose={null} scale={0.5} position={[0, 0.25, 0]}>
+        <group
+            {...props}
+            dispose={null}
+            scale={0.5}
+            position={[0, 0.25, 0]}
+        >
             <mesh
                 castShadow
                 receiveShadow
                 geometry={nodes.Cube.geometry}
-                material={materials['Unit Base']}
+                material={materials["Unit Base"]}
                 position={[0, 0, 0.384]}
                 scale={[2.123, 0.441, 1.386]}
             />
@@ -45,7 +49,7 @@ export function StoreModelH3H3TheButton(props) {
                 castShadow
                 receiveShadow
                 geometry={nodes.Cylinder002.geometry}
-                material={materials['Unit Base']}
+                material={materials["Unit Base"]}
                 position={[-1.145, 0.481, 0]}
                 scale={[0.601, 0.296, 0.601]}
             />
@@ -53,7 +57,7 @@ export function StoreModelH3H3TheButton(props) {
                 castShadow
                 receiveShadow
                 geometry={nodes.Cylinder003.geometry}
-                material={materials['Unit Base']}
+                material={materials["Unit Base"]}
                 position={[1.14, 0.481, 0]}
                 scale={[0.601, 0.296, 0.601]}
             />
@@ -116,8 +120,7 @@ export function StoreModelH3H3TheButton(props) {
                 scale={[-0.969, -0.047, -0.009]}
             />
         </group>
-    )
-
+    );
 }
 
-useGLTF.preload(link)
+useGLTF.preload(link);
