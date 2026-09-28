@@ -19,7 +19,10 @@ function PlayerCamera({ editor }) {
     return (
         <OrbitControls
             target={[0, 1.75, -0.4]}
-            enabled={!editor?.enabled}
+            enabled={
+                !editor?.enabled ||
+                (!editor?.selectedId && !editor?.spawnBallMode)
+            }
             enablePan
             minDistance={2}
             maxDistance={35}
@@ -91,7 +94,16 @@ export default function NewGameCanvas({
             dpr={[1, 1.75]}
             camera={{ position: [0, 1.8, 7.4], fov: 44, near: 0.1, far: 100 }}
             gl={{ antialias: true, powerPreference: "high-performance" }}
-            style={{ position: "absolute", inset: 0, touchAction: "none" }}
+            style={{
+                position: "absolute",
+                inset: 0,
+                touchAction: "none",
+                cursor: editor?.spawnBallMode
+                    ? "crosshair"
+                    : editor?.enabled && !editor?.selectedId
+                      ? "grab"
+                      : "default",
+            }}
             onPointerMissed={() => editor?.enabled && editor.select(null)}
         >
             <color
@@ -134,7 +146,10 @@ export default function NewGameCanvas({
                     key={physicsRevision}
                     gravity={[0, -9.81, 0]}
                     timeStep="vary"
-                    paused={editor?.enabled}
+                    paused={
+                        editor?.enabled &&
+                        (!editor?.physicsTesting || Boolean(editor?.draggingId))
+                    }
                 >
                     <PinballMachine
                         controls={controls}

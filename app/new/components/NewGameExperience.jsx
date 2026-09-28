@@ -36,6 +36,8 @@ const controlButtonSx = {
     "&:active": { transform: "translateY(2px)", background: "#b31942" },
 };
 
+const LEFT_GUTTER_VISUAL_Z_OFFSET = 0.27;
+
 export default function NewGameExperience() {
     const controls = useRef({
         left: false,
@@ -55,6 +57,12 @@ export default function NewGameExperience() {
     const [physicsRevision, setPhysicsRevision] = useState(0);
     const [gutterFlapsFlipped, setGutterFlapsFlipped] = useState(false);
     const [launchPower, setLaunchPower] = useState(0);
+    const [spawnBallMode, setSpawnBallMode] = useState(false);
+    const [testBalls, setTestBalls] = useState([]);
+    const testBallId = useRef(0);
+    const savedSceneObjects = useRef(
+        JSON.parse(JSON.stringify(SCENE_OBJECTS)),
+    );
 
     const setControl = useCallback((name, pressed) => {
         controls.current[name] = pressed;
@@ -86,12 +94,120 @@ export default function NewGameExperience() {
     }, [score, highScore]);
 
     const updateSceneObject = useCallback((id, patch) => {
-        setSceneObjects((current) =>
-            current.map((object) =>
+        setSceneObjects((current) => {
+            const target = current.find((object) => object.id === id);
+            if (target?.type === "gutterFlap" && patch.position) {
+                const sharedVisualZ =
+                    target.side === "left"
+                        ? patch.position[2] + LEFT_GUTTER_VISUAL_Z_OFFSET
+                        : patch.position[2];
+
+                return current.map((object) => {
+                    if (object.type !== "gutterFlap")
+                        return object.id === id
+                            ? { ...object, ...patch }
+                            : object;
+
+                    const nextZ =
+                        object.side === "left"
+                            ? sharedVisualZ - LEFT_GUTTER_VISUAL_Z_OFFSET
+                            : sharedVisualZ;
+                    if (object.id === id) {
+                        return {
+                            ...object,
+                            ...patch,
+                            position: [
+                                patch.position[0],
+                                patch.position[1],
+                                nextZ,
+                            ],
+                        };
+                    }
+                    return {
+                        ...object,
+                        position: [
+                            object.position[0],
+                            object.position[1],
+                            nextZ,
+                        ],
+                    };
+                });
+            }
+
+            return current.map((object) =>
                 object.id === id ? { ...object, ...patch } : object,
-            ),
+            );
+        });
+    }, []);
+
+    const selectEditorObject = useCallback((id) => {
+        setSelectedId(id || null);
+        if (id) setSpawnBallMode(false);
+    }, []);
+
+    const changeSpawnBallMode = useCallback((enabled) => {
+        setSpawnBallMode(enabled);
+        if (enabled) setSelectedId(null);
+    }, []);
+
+    const spawnTestBall = useCallback((position) => {
+        const id = `editor-ball-${++testBallId.current}`;
+        setTestBalls((current) => [
+            ...current.slice(-15),
+            { id, position },
+        ]);
+    }, []);
+
+    const removeTestBall = useCallback((id) => {
+        setTestBalls((current) =>
+            current.filter((testBall) => testBall.id !== id),
         );
     }, []);
+
+    const clearTestBalls = useCallback(() => {
+        setTestBalls([]);
+    }, []);
+
+    const rememberSavedLayout = useCallback((objects) => {
+        savedSceneObjects.current = JSON.parse(JSON.stringify(objects));
+    }, []);
+
+    const resetSceneObjectPosition = useCallback((id) => {
+        const savedObject = savedSceneObjects.current.find(
+            (object) => object.id === id,
+        );
+        if (!savedObject) return;
+
+        setDraggingId(null);
+        setSceneObjects((current) =>
+            current.map((object) => {
+                if (savedObject.type === "gutterFlap") {
+                    if (object.type !== "gutterFlap") return object;
+                    const savedGutter = savedSceneObjects.current.find(
+                        (candidate) =>
+                            candidate.type === "gutterFlap" &&
+                            candidate.side === object.side,
+                    );
+                    return savedGutter
+                        ? {
+                              ...object,
+                              position: [...savedGutter.position],
+                          }
+                        : object;
+                }
+                return object.id === id
+                    ? { ...object, position: [...savedObject.position] }
+                    : object;
+            }),
+        );
+        setPhysicsRevision((revision) => revision + 1);
+    }, []);
+
+    const finishEditorDrag = useCallback(() => {
+        setDraggingId(null);
+        if (testBalls.length)
+            setPhysicsRevision((revision) => revision + 1);
+    }, [testBalls.length]);
 
     const runLogicTrigger = useCallback(
         (object) => {
@@ -112,7 +228,12 @@ export default function NewGameExperience() {
     const toggleEditor = useCallback(() => {
         if (editorEnabled) {
             setDraggingId(null);
+            setSpawnBallMode(false);
+            setTestBalls([]);
             setPhysicsRevision((revision) => revision + 1);
+        } else {
+            setSelectedId(null);
+            setSpawnBallMode(false);
         }
         controls.current.left = false;
         controls.current.right = false;
@@ -128,19 +249,32 @@ export default function NewGameExperience() {
             enabled: editorEnabled,
             selectedId,
             draggingId,
+            spawnBallMode,
+            physicsTesting: editorEnabled && testBalls.length > 0,
+            testBalls,
             linkedIds: selected?.logic?.targets || [],
-            select: setSelectedId,
+            select: selectEditorObject,
             beginDrag: setDraggingId,
-            endDrag: () => setDraggingId(null),
+            endDrag: finishEditorDrag,
             updateObject: updateSceneObject,
             runTrigger: runLogicTrigger,
+            setSpawnBallMode: changeSpawnBallMode,
+            spawnTestBall,
+            removeTestBall,
         };
     }, [
+        changeSpawnBallMode,
         draggingId,
         editorEnabled,
+        finishEditorDrag,
+        removeTestBall,
         runLogicTrigger,
         sceneObjects,
         selectedId,
+        selectEditorObject,
+        spawnBallMode,
+        spawnTestBall,
+        testBalls,
         updateSceneObject,
     ]);
 
@@ -186,9 +320,15 @@ export default function NewGameExperience() {
                 objects={sceneObjects}
                 selectedId={selectedId}
                 onToggle={toggleEditor}
-                onSelect={setSelectedId}
+                onSelect={selectEditorObject}
                 onUpdate={updateSceneObject}
                 onRunTrigger={runLogicTrigger}
+                onResetPosition={resetSceneObjectPosition}
+                onSaved={rememberSavedLayout}
+                spawnBallMode={spawnBallMode}
+                testBallCount={testBalls.length}
+                onSpawnBallModeChange={changeSpawnBallMode}
+                onClearTestBalls={clearTestBalls}
             />
 
             <Stack
@@ -393,7 +533,11 @@ export default function NewGameExperience() {
                                 fontWeight: 900,
                             }}
                         >
-                            {launchPower > 0.2 ? "ARMED" : "HOLD PAST 20%"}
+                            {launchPower === 0
+                                ? "HOLD TO CHARGE"
+                                : launchPower > 0.2
+                                  ? "ARMED"
+                                  : "LOW POWER · RETURNS"}
                         </Typography>
                     </Box>
                     <Button

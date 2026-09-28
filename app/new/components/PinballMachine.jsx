@@ -10,14 +10,27 @@ import {
     CylinderCollider,
     RigidBody,
 } from "@react-three/rapier";
-import { Euler, Plane, Quaternion, Vector3 } from "three";
+import {
+    CatmullRomCurve3,
+    Euler,
+    Plane,
+    Quaternion,
+    Shape,
+    Vector3,
+} from "three";
 import { Star, usePinballArtwork } from "./PinballArtwork";
 import { SCENE_OBJECTS } from "./sceneLayout";
+import {
+    PLAYFIELD_HALF_LENGTH,
+    PLAYFIELD_HALF_WIDTH,
+    PLAYFIELD_LENGTH,
+    PLAYFIELD_WIDTH,
+} from "./machineDimensions";
 
 const TILT = (6.5 * Math.PI) / 180;
 const LEG_EXTENSION = 0.18;
 const FIELD_Y = 1.65 + LEG_EXTENSION;
-const BACKBOX_Y = 2.77 + LEG_EXTENSION;
+const BACKBOX_Y = 2.87 + LEG_EXTENSION;
 const FIELD_QUATERNION = new Quaternion().setFromEuler(new Euler(TILT, 0, 0));
 const INVERSE_FIELD = FIELD_QUATERNION.clone().invert();
 const UP = new Vector3(0, 1, 0);
@@ -27,8 +40,23 @@ const GOLD = "#e6b862";
 const WHITE = "#fff1d2";
 const LAUNCH_CHARGE_SECONDS = 2.25;
 const LAUNCH_POWER_THRESHOLD = 0.2;
-const MIN_LAUNCH_SPEED = 6.6;
-const MAX_LAUNCH_SPEED = 12.2;
+const MIN_CHAMBER_PLUNGER_SPEED = 0.6;
+const MAX_CHAMBER_PLUNGER_SPEED = 1.9;
+const MIN_ARMED_PLUNGER_SPEED = 4.8;
+const MAX_ARMED_PLUNGER_SPEED = 9;
+const DEFAULT_SHOOTER_LANE_DIVIDER_X = 0.9;
+const SHOOTER_LANE_CENTER_X = 1.24;
+const PLUNGER_REST_Z = 2.46;
+const PLUNGER_STRIKE_Z = 2.29;
+const PLUNGER_PULL_DISTANCE = 0.34;
+const EDITOR_EDGE_MARGIN = 0.06;
+
+function clampToPlayfield(value, halfSize) {
+    return Math.max(
+        -halfSize + EDITOR_EDGE_MARGIN,
+        Math.min(halfSize - EDITOR_EDGE_MARGIN, value),
+    );
+}
 
 function worldPoint(x, y, z) {
     return new Vector3(x, y, z)
@@ -84,9 +112,15 @@ function EditablePlacement({ item, editor, children }) {
             moved.current = true;
         editor.updateObject(item.id, {
             position: [
-                Math.max(-1.28, Math.min(1.28, point.x + dragOffset.current.x)),
+                clampToPlayfield(
+                    point.x + dragOffset.current.x,
+                    PLAYFIELD_HALF_WIDTH,
+                ),
                 item.position[1],
-                Math.max(-2.6, Math.min(2.4, point.z + dragOffset.current.z)),
+                clampToPlayfield(
+                    point.z + dragOffset.current.z,
+                    PLAYFIELD_HALF_LENGTH,
+                ),
             ],
         });
     };
@@ -126,6 +160,201 @@ function EditablePlacement({ item, editor, children }) {
                         depthTest={false}
                     />
                 </mesh>
+            )}
+        </group>
+    );
+}
+
+function EditableWall({ item, editor }) {
+    const dragOffset = useRef(new Vector3());
+    const scaleDrag = useRef(null);
+    const intersection = useMemo(() => new Vector3(), []);
+    const length = Math.max(0.15, item.length || 0.5);
+    const width = item.width || 0.055;
+    const height = item.height || 0.24;
+    const selected = editor?.enabled && editor.selectedId === item.id;
+
+    const pointOnField = (event) => {
+        if (!event.ray.intersectPlane(EDITOR_PLANE, intersection)) return null;
+        return localPoint(intersection);
+    };
+
+    const startMove = (event) => {
+        if (!editor?.enabled) return;
+        event.stopPropagation();
+        const point = pointOnField(event);
+        if (!point) return;
+        event.target.setPointerCapture?.(event.pointerId);
+        dragOffset.current.set(
+            item.position[0] - point.x,
+            0,
+            item.position[2] - point.z,
+        );
+        editor.select(item.id);
+        editor.beginDrag(item.id);
+    };
+
+    const moveWall = (event) => {
+        if (!editor?.enabled || editor.draggingId !== item.id) return;
+        event.stopPropagation();
+        const point = pointOnField(event);
+        if (!point) return;
+        editor.updateObject(item.id, {
+            position: [
+                clampToPlayfield(
+                    point.x + dragOffset.current.x,
+                    PLAYFIELD_HALF_WIDTH,
+                ),
+                item.position[1],
+                clampToPlayfield(
+                    point.z + dragOffset.current.z,
+                    PLAYFIELD_HALF_LENGTH,
+                ),
+            ],
+        });
+    };
+
+    const finishMove = (event) => {
+        if (!editor?.enabled || editor.draggingId !== item.id) return;
+        event.stopPropagation();
+        event.target.releasePointerCapture?.(event.pointerId);
+        editor.endDrag();
+    };
+
+    const startScale = (event, endSign) => {
+        if (!editor?.enabled) return;
+        event.stopPropagation();
+        const point = pointOnField(event);
+        if (!point) return;
+        event.target.setPointerCapture?.(event.pointerId);
+
+        const yaw = item.rotation[1];
+        const axis = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+        const center = new Vector3(
+            item.position[0],
+            item.position[1],
+            item.position[2],
+        );
+        const fixedEnd = center
+            .clone()
+            .addScaledVector(axis, (-endSign * length) / 2);
+        scaleDrag.current = { axis, endSign, fixedEnd };
+        editor.select(item.id);
+        editor.beginDrag(`${item.id}:scale:${endSign}`);
+    };
+
+    const scaleWall = (event, endSign) => {
+        if (
+            !editor?.enabled ||
+            editor.draggingId !== `${item.id}:scale:${endSign}` ||
+            !scaleDrag.current
+        )
+            return;
+        event.stopPropagation();
+        const point = pointOnField(event);
+        if (!point) return;
+
+        const { axis, fixedEnd } = scaleDrag.current;
+        const target = new Vector3(
+            clampToPlayfield(point.x, PLAYFIELD_HALF_WIDTH),
+            item.position[1],
+            clampToPlayfield(point.z, PLAYFIELD_HALF_LENGTH),
+        );
+        const nextLength = Math.min(
+            PLAYFIELD_LENGTH * 1.5,
+            Math.max(0.15, target.sub(fixedEnd).dot(axis) * endSign),
+        );
+        const movingEnd = fixedEnd
+            .clone()
+            .addScaledVector(axis, endSign * nextLength);
+        const center = fixedEnd.clone().add(movingEnd).multiplyScalar(0.5);
+
+        editor.updateObject(item.id, {
+            position: [center.x, item.position[1], center.z],
+            length: nextLength,
+        });
+    };
+
+    const finishScale = (event, endSign) => {
+        if (editor?.draggingId !== `${item.id}:scale:${endSign}`) return;
+        event.stopPropagation();
+        event.target.releasePointerCapture?.(event.pointerId);
+        scaleDrag.current = null;
+        editor.endDrag();
+    };
+
+    return (
+        <group
+            position={item.position}
+            rotation={item.rotation}
+            onPointerDown={startMove}
+            onPointerMove={moveWall}
+            onPointerUp={finishMove}
+            onPointerCancel={finishMove}
+        >
+            <RigidBody
+                type="fixed"
+                colliders={false}
+            >
+                <CuboidCollider
+                    args={[width / 2, height / 2, length / 2]}
+                    position={[0, height / 2, 0]}
+                    restitution={0.62}
+                    friction={0.08}
+                />
+                <Box
+                    position={[0, height / 2, 0]}
+                    size={[width, height, length]}
+                    color={item.color || "#c4d3df"}
+                    metalness={0.75}
+                    roughness={0.2}
+                />
+            </RigidBody>
+
+            {selected && (
+                <>
+                    <mesh
+                        position={[0, height / 2, 0]}
+                        raycast={() => null}
+                    >
+                        <boxGeometry
+                            args={[width + 0.035, height + 0.035, length + 0.02]}
+                        />
+                        <meshBasicMaterial
+                            color={GOLD}
+                            wireframe
+                            depthTest={false}
+                        />
+                    </mesh>
+                    {[-1, 1].map((endSign) => (
+                        <mesh
+                            key={endSign}
+                            position={[0, height + 0.09, (endSign * length) / 2]}
+                            onPointerDown={(event) =>
+                                startScale(event, endSign)
+                            }
+                            onPointerMove={(event) =>
+                                scaleWall(event, endSign)
+                            }
+                            onPointerUp={(event) =>
+                                finishScale(event, endSign)
+                            }
+                            onPointerCancel={(event) =>
+                                finishScale(event, endSign)
+                            }
+                            renderOrder={20}
+                        >
+                            <sphereGeometry args={[0.105, 18, 14]} />
+                            <meshBasicMaterial
+                                color={endSign < 0 ? "#55d7ff" : GOLD}
+                                transparent
+                                opacity={0.25}
+                                depthTest={false}
+                                depthWrite={false}
+                            />
+                        </mesh>
+                    ))}
+                </>
             )}
         </group>
     );
@@ -195,6 +424,181 @@ function Rail({
                 roughness={0.2}
             />
         </RigidBody>
+    );
+}
+
+function CornerTriangle({ side, color }) {
+    const isLeft = side === "left";
+    const points = useMemo(
+        () =>
+            isLeft
+                ? [
+                      [-0.3, 0.28],
+                      [0.3, 0.28],
+                      [-0.3, -0.32],
+                  ]
+                : [
+                      [0.3, 0.28],
+                      [-0.3, 0.28],
+                      [0.3, -0.32],
+                  ],
+        [isLeft],
+    );
+    const shape = useMemo(() => {
+        const nextShape = new Shape();
+        nextShape.moveTo(points[0][0], -points[0][1]);
+        points.slice(1).forEach(([x, z]) => nextShape.lineTo(x, -z));
+        nextShape.closePath();
+        return nextShape;
+    }, [points]);
+
+    return (
+        <>
+            {points.map((from, index) => (
+                <Rail
+                    key={index}
+                    from={from}
+                    to={points[(index + 1) % points.length]}
+                    width={0.045}
+                    height={0.13}
+                    color={index === 1 ? WHITE : color}
+                />
+            ))}
+            <mesh
+                position={[0, 0.075, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                castShadow
+                receiveShadow
+            >
+                <shapeGeometry args={[shape]} />
+                <meshStandardMaterial
+                    color={color}
+                    emissive={color}
+                    emissiveIntensity={0.16}
+                    roughness={0.32}
+                    metalness={0.14}
+                />
+            </mesh>
+            <Star
+                position={[isLeft ? -0.12 : 0.12, 0.086, 0.1]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                scale={0.105}
+                color={WHITE}
+            />
+        </>
+    );
+}
+
+function TopPlayfieldArch({ color = NAVY, length = 2.54, width = 0.65 }) {
+    const radiusX = Math.max(0.45, length / 2);
+    const radiusZ = Math.max(0.18, width);
+    const railPoints = useMemo(
+        () =>
+            Array.from({ length: 41 }, (_, index) => {
+                const angle = (index / 40) * Math.PI;
+                return new Vector3(
+                    radiusX * Math.cos(angle),
+                    0.17,
+                    -radiusZ * Math.sin(angle),
+                );
+            }),
+        [radiusX, radiusZ],
+    );
+    const curve = useMemo(
+        () => new CatmullRomCurve3(railPoints, false, "centripetal"),
+        [railPoints],
+    );
+    const ribbon = useMemo(() => {
+        const shape = new Shape();
+        const outer = Array.from({ length: 41 }, (_, index) => {
+            const angle = (index / 40) * Math.PI;
+            return [
+                (radiusX + 0.05) * Math.cos(angle),
+                -(radiusZ + 0.05) * Math.sin(angle),
+            ];
+        });
+        const inner = Array.from({ length: 41 }, (_, index) => {
+            const angle = Math.PI - (index / 40) * Math.PI;
+            return [
+                Math.max(0.3, radiusX - 0.12) * Math.cos(angle),
+                -Math.max(0.08, radiusZ - 0.15) * Math.sin(angle),
+            ];
+        });
+
+        shape.moveTo(outer[0][0], -outer[0][1]);
+        outer.slice(1).forEach(([x, z]) => shape.lineTo(x, -z));
+        inner.forEach(([x, z]) => shape.lineTo(x, -z));
+        shape.closePath();
+        return shape;
+    }, [radiusX, radiusZ]);
+
+    return (
+        <>
+            <RigidBody
+                type="fixed"
+                colliders={false}
+            >
+                {railPoints.slice(0, -1).map((from, index) => {
+                    const to = railPoints[index + 1];
+                    const dx = to.x - from.x;
+                    const dz = to.z - from.z;
+                    const length = Math.hypot(dx, dz);
+                    return (
+                        <CuboidCollider
+                            key={index}
+                            args={[0.04, 0.13, length / 2]}
+                            position={[
+                                (from.x + to.x) / 2,
+                                0.13,
+                                (from.z + to.z) / 2,
+                            ]}
+                            rotation={[0, Math.atan2(dx, dz), 0]}
+                            restitution={0.62}
+                            friction={0.08}
+                        />
+                    );
+                })}
+                <mesh castShadow>
+                    <tubeGeometry args={[curve, 96, 0.04, 10, false]} />
+                    <meshStandardMaterial
+                        color="#d8e1e9"
+                        metalness={0.9}
+                        roughness={0.18}
+                    />
+                </mesh>
+            </RigidBody>
+
+            <mesh
+                position={[0, 0.045, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                receiveShadow
+            >
+                <shapeGeometry args={[ribbon]} />
+                <meshStandardMaterial
+                    color={color}
+                    metalness={0.2}
+                    roughness={0.3}
+                />
+            </mesh>
+
+            {[-0.43, 0, 0.43].map((amount) => {
+                const x = amount * radiusX;
+                const z =
+                    -(radiusZ - 0.05) *
+                    Math.sqrt(
+                        Math.max(0, 1 - Math.pow(x / radiusX, 2)),
+                    );
+                return (
+                    <Star
+                        key={amount}
+                        position={[x, 0.062, z]}
+                        rotation={[-Math.PI / 2, 0, 0]}
+                        scale={0.07}
+                        color={WHITE}
+                    />
+                );
+            })}
+        </>
     );
 }
 
@@ -274,10 +678,12 @@ function Cabinet({ controls }) {
             >
                 <Geometry>
                     <Base>
-                        <boxGeometry args={[3, 1, 5.8]} />
+                        <boxGeometry args={[3, 1, PLAYFIELD_LENGTH + 0.2]} />
                     </Base>
                     <Subtraction position={[0, 0.35, 0]}>
-                        <boxGeometry args={[2.72, 1.35, 5.52]} />
+                        <boxGeometry
+                            args={[PLAYFIELD_WIDTH, 1.35, PLAYFIELD_LENGTH]}
+                        />
                     </Subtraction>
                 </Geometry>
                 <meshStandardMaterial
@@ -346,7 +752,7 @@ function Cabinet({ controls }) {
 function Backbox() {
     const art = usePinballArtwork("backglass");
     return (
-        <group position={[0, BACKBOX_Y, -2.66]}>
+        <group position={[0, BACKBOX_Y, -3]}>
             <RoundedBox
                 args={[3.25, 1.98, 0.54]}
                 radius={0.07}
@@ -606,21 +1012,21 @@ function Flipper({ side, controls, sceneRotation, editorEnabled }) {
             rotation={[0, angle.current, 0]}
         >
             <CuboidCollider
-                position={[direction * 0.28, 0, 0]}
-                args={[0.3, 0.075, 0.075]}
+                position={[direction * 0.195, 0, 0]}
+                args={[0.205, 0.0525, 0.06]}
                 restitution={0.35}
                 onCollisionEnter={hit}
             />
             <BallCollider
-                args={[0.08]}
-                position={[direction * 0.56, 0, 0]}
+                args={[0.06]}
+                position={[direction * 0.43, 0, 0]}
                 onCollisionEnter={hit}
             />
             <group ref={visual}>
                 <RoundedBox
-                    position={[direction * 0.27, 0, 0]}
-                    args={[0.65, 0.14, 0.17]}
-                    radius={0.065}
+                    position={[direction * 0.195, 0, 0]}
+                    args={[0.48, 0.105, 0.135]}
+                    radius={0.052}
                     smoothness={3}
                     castShadow
                 >
@@ -630,9 +1036,9 @@ function Flipper({ side, controls, sceneRotation, editorEnabled }) {
                     />
                 </RoundedBox>
                 <RoundedBox
-                    position={[direction * 0.26, 0.06, 0]}
-                    args={[0.58, 0.05, 0.12]}
-                    radius={0.025}
+                    position={[direction * 0.19, 0.047, 0]}
+                    args={[0.42, 0.035, 0.09]}
+                    radius={0.018}
                     smoothness={2}
                 >
                     <meshStandardMaterial
@@ -640,8 +1046,8 @@ function Flipper({ side, controls, sceneRotation, editorEnabled }) {
                         roughness={0.3}
                     />
                 </RoundedBox>
-                <mesh position={[0, 0.097, 0]}>
-                    <cylinderGeometry args={[0.047, 0.047, 0.015, 16]} />
+                <mesh position={[0, 0.074, 0]}>
+                    <cylinderGeometry args={[0.039, 0.039, 0.012, 16]} />
                     <meshStandardMaterial
                         color={GOLD}
                         metalness={0.8}
@@ -668,17 +1074,17 @@ function Slingshot({ side, onScore }) {
                 width={0.1}
                 onHit={hit}
             />
-            <Box
+            {/* <Box
                 position={[-direction * 0.025, 0.21, 0]}
                 rotation={[0, direction * 0.44, 0]}
                 size={[0.23, 0.06, 0.72]}
                 color={side === "left" ? RED : "#2469b8"}
-            />
-            <Star
+            /> */}
+            {/* <Star
                 position={[0, 0.245, 0]}
                 rotation={[-Math.PI / 2, 0, 0]}
                 scale={0.09}
-            />
+            /> */}
         </>
     );
 }
@@ -726,10 +1132,17 @@ function Post({ color, onScore }) {
 function GutterFlap({ side, flipped }) {
     const visual = useRef();
     const isLeft = side === "left";
-    const angle = useRef(flipped ? (isLeft ? Math.PI / 2 : -Math.PI / 2) : 0);
+    const flapWidth = 0.27;
+    const pivotX = isLeft ? -flapWidth / 2 : flapWidth / 2;
+    const startAngle = isLeft ? Math.PI : 0;
+    const openAngle = (80 * Math.PI) / 180;
+    const triggeredAngle = isLeft
+        ? startAngle + openAngle
+        : -openAngle;
+    const angle = useRef(flipped ? triggeredAngle : startAngle);
 
     useFrame((_, dt) => {
-        const target = flipped ? (isLeft ? Math.PI / 2 : -Math.PI / 2) : 0;
+        const target = flipped ? triggeredAngle : startAngle;
         angle.current += (target - angle.current) * Math.min(1, dt * 12);
         if (visual.current) visual.current.rotation.z = angle.current;
     });
@@ -738,101 +1151,64 @@ function GutterFlap({ side, flipped }) {
         <RigidBody
             type="fixed"
             colliders={false}
+            rotation={[-Math.PI / 2, 0, Math.PI / 2]}
         >
             {!flipped && (
                 <CuboidCollider
-                    args={[isLeft ? 0.165 : 0.125, 0.025, 0.055]}
+                    args={[0.125, 0.025, 0.055]}
+                    position={isLeft ? [-flapWidth, 0, 0] : [0, 0, 0]}
+                    rotation={isLeft ? [0, 0, Math.PI] : [0, 0, 0]}
                     restitution={0.72}
                     friction={0.05}
                 />
             )}
-            <group ref={visual}>
-                <RoundedBox
-                    args={[isLeft ? 0.35 : 0.27, 0.055, 0.12]}
-                    radius={0.025}
-                    smoothness={2}
-                    castShadow
-                >
-                    <meshStandardMaterial
-                        color={isLeft ? RED : "#2469b8"}
-                        emissive={isLeft ? RED : "#2469b8"}
-                        emissiveIntensity={flipped ? 0.12 : 0.5}
-                        roughness={0.3}
+            <group
+                ref={visual}
+                position={[pivotX, 0, 0]}
+                rotation={[0, 0, angle.current]}
+            >
+                <group position={[-pivotX, 0, 0]}>
+                    <RoundedBox
+                        args={[flapWidth, 0.055, 0.12]}
+                        radius={0.025}
+                        smoothness={2}
+                        castShadow
+                    >
+                        <meshStandardMaterial
+                            color={isLeft ? RED : "#2469b8"}
+                            emissive={isLeft ? RED : "#2469b8"}
+                            emissiveIntensity={flipped ? 0.12 : 0.5}
+                            roughness={0.3}
+                        />
+                    </RoundedBox>
+                    <Box
+                        position={[0, 0.035, 0]}
+                        size={[0.05, 0.02, 0.14]}
+                        color={WHITE}
                     />
-                </RoundedBox>
-                <Box
-                    position={[0, 0.035, 0]}
-                    size={[0.05, 0.02, 0.14]}
-                    color={WHITE}
-                />
+                </group>
+                <mesh rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.035, 0.035, 0.14, 18]} />
+                    <meshStandardMaterial
+                        color={GOLD}
+                        metalness={0.82}
+                        roughness={0.2}
+                    />
+                </mesh>
             </group>
         </RigidBody>
     );
 }
 
-function Plunger({ charge }) {
-    const rod = useRef();
-    useFrame(() => {
-        if (rod.current) rod.current.position.z = charge.current * 0.38;
-    });
-    return (
-        <group position={[1.17, 0.1, 2.6]}>
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.1, 0.1, 0.26, 24]} />
-                <meshStandardMaterial
-                    color="#b8c9d3"
-                    metalness={0.85}
-                    roughness={0.22}
-                />
-            </mesh>
-            <group ref={rod}>
-                <mesh
-                    position={[0, 0, 0.28]}
-                    rotation={[Math.PI / 2, 0, 0]}
-                >
-                    <cylinderGeometry args={[0.027, 0.027, 0.6, 16]} />
-                    <meshStandardMaterial
-                        color="#d2e0ed"
-                        metalness={1}
-                        roughness={0.14}
-                    />
-                </mesh>
-                <mesh
-                    position={[0, 0, 0.59]}
-                    rotation={[Math.PI / 2, 0, 0]}
-                >
-                    <cylinderGeometry args={[0.115, 0.09, 0.1, 24]} />
-                    <meshStandardMaterial
-                        color={RED}
-                        roughness={0.22}
-                    />
-                </mesh>
-            </group>
-            {Array.from({ length: 9 }, (_, i) => (
-                <mesh
-                    key={i}
-                    position={[0, 0, -0.02 + i * 0.022]}
-                >
-                    <torusGeometry args={[0.051, 0.01, 6, 16]} />
-                    <meshStandardMaterial
-                        color="#b5bfcc"
-                        metalness={0.85}
-                        roughness={0.2}
-                    />
-                </mesh>
-            ))}
-        </group>
-    );
-}
-
-function Ball({ controls, charge, onDrain, onLaunchPowerChange }) {
-    const ball = useRef();
+function Plunger({ controls, charge, onLaunchPowerChange }) {
+    const body = useRef();
+    const phase = useRef("ready");
+    const positionZ = useRef(PLUNGER_REST_Z);
+    const strikeSpeed = useRef(MIN_CHAMBER_PLUNGER_SPEED);
     const previousLaunch = useRef(false);
     const previousReset = useRef(controls.current.reset);
-    const awaitingServe = useRef(false);
-    const respawnAt = useRef(0);
     const reportedPower = useRef(-1);
-    const spawn = useMemo(() => worldPoint(1.17, 0.12, 2.25), []);
+
     const reportPower = useCallback(
         (power, force = false) => {
             if (!force && Math.abs(power - reportedPower.current) < 0.02)
@@ -842,14 +1218,138 @@ function Ball({ controls, charge, onDrain, onLaunchPowerChange }) {
         },
         [onLaunchPowerChange],
     );
+
+    useFrame((_, dt) => {
+        if (!body.current) return;
+        const input = controls.current;
+
+        if (input.reset !== previousReset.current) {
+            previousReset.current = input.reset;
+            phase.current = "ready";
+            positionZ.current = PLUNGER_REST_Z;
+            charge.current = 0;
+            reportPower(0, true);
+        }
+
+        if (input.launch && phase.current !== "firing" && phase.current !== "returning") {
+            phase.current = "charging";
+            charge.current = Math.min(
+                1,
+                charge.current + dt / LAUNCH_CHARGE_SECONDS,
+            );
+            positionZ.current =
+                PLUNGER_REST_Z + charge.current * PLUNGER_PULL_DISTANCE;
+            reportPower(charge.current);
+        }
+
+        if (previousLaunch.current && !input.launch && phase.current === "charging") {
+            if (charge.current <= LAUNCH_POWER_THRESHOLD) {
+                const chamberPower = charge.current / LAUNCH_POWER_THRESHOLD;
+                strikeSpeed.current =
+                    MIN_CHAMBER_PLUNGER_SPEED +
+                    (MAX_CHAMBER_PLUNGER_SPEED - MIN_CHAMBER_PLUNGER_SPEED) *
+                        Math.pow(chamberPower, 1.08);
+            } else {
+                const armedPower =
+                    (charge.current - LAUNCH_POWER_THRESHOLD) /
+                    (1 - LAUNCH_POWER_THRESHOLD);
+                strikeSpeed.current =
+                    MIN_ARMED_PLUNGER_SPEED +
+                    (MAX_ARMED_PLUNGER_SPEED - MIN_ARMED_PLUNGER_SPEED) *
+                        Math.pow(armedPower, 1.12);
+            }
+            phase.current = "firing";
+            charge.current = 0;
+            reportPower(0, true);
+        }
+
+        if (phase.current === "firing") {
+            positionZ.current = Math.max(
+                PLUNGER_STRIKE_Z,
+                positionZ.current - strikeSpeed.current * dt,
+            );
+            if (positionZ.current <= PLUNGER_STRIKE_Z + 0.0001) {
+                phase.current = "returning";
+            }
+        } else if (phase.current === "returning") {
+            positionZ.current = Math.min(
+                PLUNGER_REST_Z,
+                positionZ.current + 1.4 * dt,
+            );
+            if (positionZ.current >= PLUNGER_REST_Z - 0.0001) {
+                phase.current = "ready";
+            }
+        }
+
+        body.current.setNextKinematicTranslation(
+            worldPoint(SHOOTER_LANE_CENTER_X, 0.12, positionZ.current),
+        );
+        previousLaunch.current = input.launch;
+    });
+
+    return (
+        <>
+            <RigidBody
+                ref={body}
+                name="physical-plunger"
+                type="kinematicPosition"
+                colliders={false}
+                position={[SHOOTER_LANE_CENTER_X, 0.12, PLUNGER_REST_Z]}
+            >
+                <CuboidCollider
+                    args={[0.09, 0.075, 0.055]}
+                    restitution={0.12}
+                    friction={0.08}
+                />
+                <RoundedBox
+                    args={[0.18, 0.14, 0.11]}
+                    radius={0.035}
+                    smoothness={3}
+                    castShadow
+                >
+                    <meshStandardMaterial color={RED} roughness={0.26} />
+                </RoundedBox>
+                <mesh position={[0, 0, 0.31]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.027, 0.027, 0.62, 16]} />
+                    <meshStandardMaterial color="#d2e0ed" metalness={1} roughness={0.14} />
+                </mesh>
+                <mesh position={[0, 0, 0.64]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.115, 0.09, 0.1, 24]} />
+                    <meshStandardMaterial color={RED} roughness={0.22} />
+                </mesh>
+            </RigidBody>
+
+            <group position={[SHOOTER_LANE_CENTER_X, 0.12, 2.72]}>
+                {Array.from({ length: 9 }, (_, i) => (
+                    <mesh key={i} position={[0, 0, i * 0.026]}>
+                        <torusGeometry args={[0.055, 0.01, 6, 16]} />
+                        <meshStandardMaterial color="#b5bfcc" metalness={0.85} roughness={0.2} />
+                    </mesh>
+                ))}
+            </group>
+        </>
+    );
+}
+
+function Ball({
+    controls,
+    onDrain,
+    shooterDividerX = DEFAULT_SHOOTER_LANE_DIVIDER_X,
+}) {
+    const ball = useRef();
+    const previousReset = useRef(controls.current.reset);
+    const awaitingServe = useRef(false);
+    const respawnAt = useRef(0);
+    const spawn = useMemo(
+        () => worldPoint(SHOOTER_LANE_CENTER_X, 0.12, 2.25),
+        [],
+    );
     const serve = useCallback(() => {
         ball.current.setTranslation(spawn, true);
         ball.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
         ball.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
         awaitingServe.current = false;
-        charge.current = 0;
-        reportPower(0, true);
-    }, [spawn, charge, reportPower]);
+    }, [spawn]);
     useFrame((state, dt) => {
         if (!ball.current) return;
         const input = controls.current;
@@ -860,7 +1360,7 @@ function Ball({ controls, charge, onDrain, onLaunchPowerChange }) {
         const p = localPoint(ball.current.translation());
         if (
             !awaitingServe.current &&
-            ((p.z > 2.42 && p.x < 1.08) ||
+            ((p.z > 2.42 && p.x < shooterDividerX) ||
                 p.y < -0.8 ||
                 Math.abs(p.x) > 2 ||
                 Math.abs(p.z) > 3.4)
@@ -874,48 +1374,6 @@ function Ball({ controls, charge, onDrain, onLaunchPowerChange }) {
             state.clock.elapsedTime >= respawnAt.current
         )
             serve();
-        const inShooter = p.x > 1.08 && p.z > 1.95 && !awaitingServe.current;
-        if (input.launch && inShooter) {
-            charge.current = Math.min(
-                1,
-                charge.current + dt / LAUNCH_CHARGE_SECONDS,
-            );
-            reportPower(charge.current);
-        }
-        if (previousLaunch.current && !input.launch) {
-            if (inShooter && charge.current > LAUNCH_POWER_THRESHOLD) {
-                const armedPower =
-                    (charge.current - LAUNCH_POWER_THRESHOLD) /
-                    (1 - LAUNCH_POWER_THRESHOLD);
-                const powerCurve = Math.pow(armedPower, 1.12);
-                const launchSpeed =
-                    MIN_LAUNCH_SPEED +
-                    (MAX_LAUNCH_SPEED - MIN_LAUNCH_SPEED) * powerCurve;
-                const velocity = new Vector3(
-                    0,
-                    0,
-                    -launchSpeed,
-                ).applyQuaternion(FIELD_QUATERNION);
-                ball.current.setLinvel(velocity, true);
-            } else if (inShooter) {
-                ball.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
-            }
-            charge.current = 0;
-            reportPower(0, true);
-        }
-        previousLaunch.current = input.launch;
-        // The playfield glass limits hops. This speed cap keeps high-energy bumper contacts stable.
-        const velocity = ball.current.linvel();
-        const speed = Math.hypot(velocity.x, velocity.y, velocity.z);
-        if (speed > 15)
-            ball.current.setLinvel(
-                {
-                    x: (velocity.x * 15) / speed,
-                    y: (velocity.y * 15) / speed,
-                    z: (velocity.z * 15) / speed,
-                },
-                true,
-            );
     });
     return (
         <RigidBody
@@ -946,6 +1404,88 @@ function Ball({ controls, charge, onDrain, onLaunchPowerChange }) {
     );
 }
 
+function EditorTestBall({ id, position, onRemove }) {
+    const body = useRef();
+    const removed = useRef(false);
+    const spawn = useMemo(
+        () => worldPoint(position[0], position[1], position[2]),
+        [position[0], position[1], position[2]],
+    );
+
+    useFrame(() => {
+        if (!body.current || removed.current) return;
+        const point = localPoint(body.current.translation());
+        if (
+            point.y < -0.8 ||
+            Math.abs(point.x) > PLAYFIELD_HALF_WIDTH + 0.8 ||
+            Math.abs(point.z) > PLAYFIELD_HALF_LENGTH + 0.8
+        ) {
+            removed.current = true;
+            onRemove(id);
+        }
+    });
+
+    return (
+        <RigidBody
+            ref={body}
+            name="liberty-ball"
+            position={spawn.toArray()}
+            colliders={false}
+            ccd
+            canSleep={false}
+            linearDamping={0.075}
+            angularDamping={0.12}
+        >
+            <BallCollider
+                args={[0.09]}
+                mass={0.08}
+                restitution={0.38}
+                friction={0.12}
+            />
+            <mesh castShadow>
+                <sphereGeometry args={[0.09, 24, 24]} />
+                <meshStandardMaterial
+                    color={GOLD}
+                    emissive="#7a4e08"
+                    emissiveIntensity={0.35}
+                    metalness={0.9}
+                    roughness={0.16}
+                />
+            </mesh>
+        </RigidBody>
+    );
+}
+
+function EditorBallSpawner({ editor }) {
+    if (!editor?.enabled || !editor.spawnBallMode) return null;
+
+    const spawn = (event) => {
+        event.stopPropagation();
+        const point = localPoint(event.point);
+        editor.spawnTestBall([
+            clampToPlayfield(point.x, PLAYFIELD_HALF_WIDTH),
+            0.16,
+            clampToPlayfield(point.z, PLAYFIELD_HALF_LENGTH),
+        ]);
+    };
+
+    return (
+        <mesh
+            position={[0, 0.62, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            onPointerDown={spawn}
+        >
+            <planeGeometry args={[PLAYFIELD_WIDTH, PLAYFIELD_LENGTH]} />
+            <meshBasicMaterial
+                color="#55d7ff"
+                transparent
+                opacity={0.035}
+                depthWrite={false}
+            />
+        </mesh>
+    );
+}
+
 function EditableSceneObject({
     item,
     editor,
@@ -954,6 +1494,15 @@ function EditableSceneObject({
     onScore,
     onToggleFlaps,
 }) {
+    if (item.type === "wall") {
+        return (
+            <EditableWall
+                item={item}
+                editor={editor}
+            />
+        );
+    }
+
     let object = null;
 
     if (item.type === "liberty") {
@@ -1002,6 +1551,21 @@ function EditableSceneObject({
                 editorEnabled={editor?.enabled}
             />
         );
+    } else if (item.type === "cornerTriangle") {
+        object = (
+            <CornerTriangle
+                side={item.side}
+                color={item.color}
+            />
+        );
+    } else if (item.type === "topArch") {
+        object = (
+            <TopPlayfieldArch
+                color={item.color}
+                length={item.length}
+                width={item.width}
+            />
+        );
     }
 
     if (!object) return null;
@@ -1040,6 +1604,9 @@ export default function PinballMachine({
         () => onToggleGutterFlaps?.(),
         [onToggleGutterFlaps],
     );
+    const shooterDividerX =
+        sceneObjects.find((item) => item.id === "wall-shooter-divider")
+            ?.position?.[0] ?? DEFAULT_SHOOTER_LANE_DIVIDER_X;
 
     return (
         <group>
@@ -1069,7 +1636,9 @@ export default function PinballMachine({
                     );
                 }),
             )}
+
             <Backbox />
+
             <group
                 position={[0, FIELD_Y, 0]}
                 rotation={[TILT, 0, 0]}
@@ -1081,14 +1650,14 @@ export default function PinballMachine({
                 >
                     {/* Explicit wall colliders preserve the CSG cavity; a convex hull would seal it. */}
                     <CuboidCollider
-                        args={[1.36, 0.055, 2.49]}
+                        args={[PLAYFIELD_HALF_WIDTH, 0.055, 2.49]}
                         position={[0, -0.055, -0.21]}
                         friction={0.11}
                         restitution={0.15}
                     />
                     <CuboidCollider
                         args={[0.16, 0.055, 0.27]}
-                        position={[1.17, -0.055, 2.48]}
+                        position={[SHOOTER_LANE_CENTER_X, -0.055, 2.48]}
                         friction={0.1}
                     />
                     <CuboidCollider
@@ -1102,26 +1671,27 @@ export default function PinballMachine({
                         restitution={0.55}
                     />
                     <CuboidCollider
-                        args={[1.36, 0.24, 0.07]}
-                        position={[0, 0.03, -2.83]}
+                        args={[PLAYFIELD_HALF_WIDTH, 0.24, 0.07]}
+                        position={[0, 0.03, -PLAYFIELD_HALF_LENGTH - 0.03]}
                         restitution={0.55}
                     />
                     <CuboidCollider
-                        args={[0.17, 0.16, 0.07]}
-                        position={[1.17, 0.06, 2.53]}
-                        restitution={0.05}
-                    />
-                    <CuboidCollider
-                        args={[1.35, 0.025, 2.65]}
+                        args={[
+                            PLAYFIELD_HALF_WIDTH,
+                            0.025,
+                            PLAYFIELD_HALF_LENGTH,
+                        ]}
                         position={[0, 0.48, 0]}
                         restitution={0.05}
                     />
                     <mesh
-                        position={[0, -0.018, -0.07]}
+                        position={[0, -0.018, 0]}
                         rotation={[-Math.PI / 2, 0, 0]}
                         receiveShadow
                     >
-                        <planeGeometry args={[2.71, 5.37]} />
+                        <planeGeometry
+                            args={[PLAYFIELD_WIDTH, PLAYFIELD_LENGTH]}
+                        />
                         <meshStandardMaterial
                             map={playfieldArt}
                             roughness={0.32}
@@ -1129,42 +1699,6 @@ export default function PinballMachine({
                         />
                     </mesh>
                 </RigidBody>
-                {/* Right shooter lane has a continuous solid divider and a curved exit onto the top arch. */}
-                <Rail
-                    from={[1.08, 2.66]}
-                    to={[1.08, -1.93]}
-                    width={0.055}
-                    height={0.29}
-                />
-                <Rail
-                    from={[1.34, -2.12]}
-                    to={[1.14, -2.49]}
-                />
-                <Rail
-                    from={[1.14, -2.49]}
-                    to={[0.72, -2.67]}
-                />
-                <Rail
-                    from={[0.72, -2.67]}
-                    to={[-0.85, -2.67]}
-                />
-                <Rail
-                    from={[-0.85, -2.67]}
-                    to={[-1.26, -2.25]}
-                />
-                <Rail
-                    from={[-1.26, -2.25]}
-                    to={[-1.26, -0.05]}
-                />
-                {[-0.72, -0.18, 0.36].map((x) => (
-                    <Rail
-                        key={x}
-                        from={[x, -2.37]}
-                        to={[x, -2.06]}
-                        height={0.16}
-                        width={0.035}
-                    />
-                ))}
                 {sceneObjects.map((item) => (
                     <EditableSceneObject
                         key={item.id}
@@ -1176,27 +1710,6 @@ export default function PinballMachine({
                         onToggleFlaps={toggleGutterFlaps}
                     />
                 ))}
-                {/* Inlane guides feed the flipper pivots; the outer gaps form genuine outlanes. */}
-                <Rail
-                    from={[-1.08, 0.17]}
-                    to={[-1.08, 1.5]}
-                    width={0.045}
-                />
-                <Rail
-                    from={[-1.08, 1.5]}
-                    to={[-0.88, 1.74]}
-                    width={0.045}
-                />
-                <Rail
-                    from={[0.69, 0.17]}
-                    to={[0.69, 1.5]}
-                    width={0.045}
-                />
-                <Rail
-                    from={[0.69, 1.5]}
-                    to={[0.64, 1.74]}
-                    width={0.045}
-                />
                 {Array.from({ length: 5 }, (_, i) => (
                     <mesh
                         key={i}
@@ -1224,14 +1737,29 @@ export default function PinballMachine({
                         scale={0.09}
                     />
                 ))}
-                <Plunger charge={charge} />
+                <Plunger
+                    controls={input}
+                    charge={charge}
+                    onLaunchPowerChange={onLaunchPowerChange}
+                />
+                <EditorBallSpawner editor={editor} />
             </group>
-            <Ball
-                controls={input}
-                charge={charge}
-                onDrain={onDrain}
-                onLaunchPowerChange={onLaunchPowerChange}
-            />
+            {!editor?.enabled && (
+                <Ball
+                    controls={input}
+                    onDrain={onDrain}
+                    shooterDividerX={shooterDividerX}
+                />
+            )}
+            {editor?.enabled &&
+                editor.testBalls.map((testBall) => (
+                    <EditorTestBall
+                        key={testBall.id}
+                        id={testBall.id}
+                        position={testBall.position}
+                        onRemove={editor.removeTestBall}
+                    />
+                ))}
         </group>
     );
 }

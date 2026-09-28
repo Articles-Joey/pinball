@@ -15,7 +15,14 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import {
+    inchesToSceneUnits,
+    PLAYFIELD_LENGTH_INCHES,
+    PLAYFIELD_WIDTH_INCHES,
+    sceneUnitsToInches,
+} from "./machineDimensions";
 
 const fieldSx = {
     "& .MuiInputBase-input": {
@@ -25,6 +32,8 @@ const fieldSx = {
         fontVariantNumeric: "tabular-nums",
     },
 };
+
+const LEFT_GUTTER_VISUAL_Z_OFFSET = 0.27;
 
 function VectorFields({ label, values, onChange, degrees = false }) {
     const displayValues = degrees
@@ -79,12 +88,35 @@ export default function SceneEditor({
     onSelect,
     onUpdate,
     onRunTrigger,
+    onResetPosition,
+    onSaved,
+    spawnBallMode,
+    testBallCount,
+    onSpawnBallModeChange,
+    onClearTestBalls,
 }) {
     const [saveState, setSaveState] = useState("idle");
     const selected = useMemo(
         () => objects.find((object) => object.id === selectedId) || null,
         [objects, selectedId],
     );
+    const gutterFlaps = useMemo(
+        () => ({
+            left: objects.find(
+                (object) =>
+                    object.type === "gutterFlap" && object.side === "left",
+            ),
+            right: objects.find(
+                (object) =>
+                    object.type === "gutterFlap" && object.side === "right",
+            ),
+        }),
+        [objects],
+    );
+    const sharedGutterVisualZ = gutterFlaps.right
+        ? gutterFlaps.right.position[2]
+        : (gutterFlaps.left?.position[2] ?? 0) +
+          LEFT_GUTTER_VISUAL_Z_OFFSET;
 
     if (process.env.NODE_ENV !== "development") return null;
 
@@ -104,6 +136,7 @@ export default function SceneEditor({
                 body: JSON.stringify({ objects }),
             });
             if (!response.ok) throw new Error(await response.text());
+            onSaved?.(objects);
             setSaveState("saved");
         } catch (error) {
             console.error("Unable to save pinball scene layout", error);
@@ -181,9 +214,29 @@ export default function SceneEditor({
                 variant="body2"
                 sx={{ color: "rgba(255,255,255,.72)", my: 1.5 }}
             >
-                Click and drag an object across the playfield. Click a logic
-                object without dragging to preview its links.
+                {spawnBallMode
+                    ? "Placement mode: click anywhere on the playfield to drop a live physics-test ball."
+                    : selected
+                      ? "Drag the selected object to move it. Walls expose endpoint scale handles."
+                      : "Camera mode: drag to orbit, right-drag to pan, and scroll to zoom."}
             </Typography>
+
+            <Stack
+                direction="row"
+                spacing={0.75}
+                sx={{ mb: 1.5, flexWrap: "wrap" }}
+            >
+                <Chip
+                    size="small"
+                    label={`${PLAYFIELD_WIDTH_INCHES}\" wide`}
+                    sx={{ color: "white" }}
+                />
+                <Chip
+                    size="small"
+                    label={`${PLAYFIELD_LENGTH_INCHES}\" long`}
+                    sx={{ color: "white" }}
+                />
+            </Stack>
 
             <FormControl
                 fullWidth
@@ -196,6 +249,9 @@ export default function SceneEditor({
                     value={selectedId || ""}
                     onChange={(event) => onSelect(event.target.value)}
                 >
+                    <MenuItem value="">
+                        <em>Nothing selected — camera mode</em>
+                    </MenuItem>
                     {objects.map((object) => (
                         <MenuItem
                             key={object.id}
@@ -206,6 +262,56 @@ export default function SceneEditor({
                     ))}
                 </Select>
             </FormControl>
+
+            <Stack
+                direction="row"
+                spacing={0.75}
+                sx={{ mt: 1 }}
+            >
+                <Button
+                    fullWidth
+                    size="small"
+                    variant={!selectedId && !spawnBallMode ? "contained" : "outlined"}
+                    onClick={() => {
+                        onSpawnBallModeChange(false);
+                        onSelect(null);
+                    }}
+                >
+                    Camera / Deselect
+                </Button>
+                <Button
+                    fullWidth
+                    size="small"
+                    variant={spawnBallMode ? "contained" : "outlined"}
+                    color={spawnBallMode ? "warning" : "primary"}
+                    onClick={() =>
+                        onSpawnBallModeChange(!spawnBallMode)
+                    }
+                >
+                    {spawnBallMode ? "Placing balls" : "Place test balls"}
+                </Button>
+            </Stack>
+
+            {testBallCount > 0 && (
+                <Stack
+                    direction="row"
+                    spacing={0.75}
+                    sx={{ mt: 1, alignItems: "center" }}
+                >
+                    <Chip
+                        size="small"
+                        color="warning"
+                        label={`${testBallCount} test ball${testBallCount === 1 ? "" : "s"}`}
+                    />
+                    <Button
+                        size="small"
+                        onClick={onClearTestBalls}
+                        sx={{ color: "rgba(255,255,255,.78)" }}
+                    >
+                        Clear balls
+                    </Button>
+                </Stack>
+            )}
 
             {selected && (
                 <Stack
@@ -227,7 +333,25 @@ export default function SceneEditor({
                             label={selected.id}
                             variant="outlined"
                         />
+                        {selected.type === "wall" && (
+                            <Chip
+                                size="small"
+                                label="Endpoint scale mode"
+                                sx={{ color: "#071b38", bgcolor: "#e6b862" }}
+                            />
+                        )}
                     </Stack>
+
+                    <Button
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        color="warning"
+                        startIcon={<RestartAltRoundedIcon />}
+                        onClick={() => onResetPosition(selected.id)}
+                    >
+                        Reset saved position
+                    </Button>
 
                     <VectorFields
                         label="Position"
@@ -244,6 +368,210 @@ export default function SceneEditor({
                             updateVector("rotation", index, value)
                         }
                     />
+
+                    {selected.type === "gutterFlap" && (
+                        <Box
+                            sx={{
+                                p: 1.25,
+                                borderRadius: 1.5,
+                                border: "1px solid rgba(85,215,255,.4)",
+                                bgcolor: "rgba(36,105,184,.13)",
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                sx={{ color: "#9de7ff", fontWeight: 900 }}
+                            >
+                                SHARED GUTTER POSITION
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                size="small"
+                                label="Shared visual Z"
+                                value={Number(sharedGutterVisualZ.toFixed(3))}
+                                onChange={(event) => {
+                                    const nextZ = Number(event.target.value);
+                                    const target =
+                                        gutterFlaps.right || gutterFlaps.left;
+                                    if (!target || !Number.isFinite(nextZ))
+                                        return;
+                                    onUpdate(target.id, {
+                                        position: [
+                                            target.position[0],
+                                            target.position[1],
+                                            target.side === "left"
+                                                ? nextZ -
+                                                  LEFT_GUTTER_VISUAL_Z_OFFSET
+                                                : nextZ,
+                                        ],
+                                    });
+                                }}
+                                slotProps={{ htmlInput: { step: 0.01 } }}
+                                sx={{ ...fieldSx, mt: 1 }}
+                            />
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: "block",
+                                    mt: 0.75,
+                                    color: "rgba(255,255,255,.62)",
+                                }}
+                            >
+                                Updates both flaps together while compensating
+                                for the left flap&apos;s flipped starting pose.
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {selected.type === "wall" && (
+                        <Box
+                            sx={{
+                                p: 1.25,
+                                borderRadius: 1.5,
+                                border: "1px solid rgba(230,184,98,.45)",
+                                bgcolor: "rgba(230,184,98,.1)",
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                sx={{ color: "#f5d68c", fontWeight: 900 }}
+                            >
+                                WALL LENGTH
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                size="small"
+                                label="Length (inches)"
+                                value={Number(
+                                    sceneUnitsToInches(
+                                        selected.length || 0,
+                                    ).toFixed(2),
+                                )}
+                                onChange={(event) => {
+                                    const inches = Number(event.target.value);
+                                    if (Number.isFinite(inches) && inches >= 1)
+                                        onUpdate(selected.id, {
+                                            length: inchesToSceneUnits(inches),
+                                        });
+                                }}
+                                slotProps={{ htmlInput: { step: 0.25, min: 1 } }}
+                                sx={{ ...fieldSx, mt: 1 }}
+                            />
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: "block",
+                                    mt: 0.75,
+                                    color: "rgba(255,255,255,.62)",
+                                }}
+                            >
+                                Blue and gold handles resize one end at a time.
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {selected.type === "topArch" && (
+                        <Box
+                            sx={{
+                                p: 1.25,
+                                borderRadius: 1.5,
+                                border: "1px solid rgba(85,215,255,.4)",
+                                bgcolor: "rgba(36,105,184,.13)",
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                sx={{ color: "#9de7ff", fontWeight: 900 }}
+                            >
+                                ARCH DIMENSIONS
+                            </Typography>
+                            <Stack
+                                direction="row"
+                                spacing={1}
+                                sx={{ mt: 1 }}
+                            >
+                                <TextField
+                                    fullWidth
+                                    type="number"
+                                    size="small"
+                                    label="Length (inches)"
+                                    value={Number(
+                                        sceneUnitsToInches(
+                                            selected.length || 2.54,
+                                        ).toFixed(2),
+                                    )}
+                                    onChange={(event) => {
+                                        const inches = Number(
+                                            event.target.value,
+                                        );
+                                        if (
+                                            Number.isFinite(inches) &&
+                                            inches >= 6.75
+                                        )
+                                            onUpdate(selected.id, {
+                                                length: inchesToSceneUnits(
+                                                    inches,
+                                                ),
+                                            });
+                                    }}
+                                    slotProps={{
+                                        htmlInput: {
+                                            step: 0.25,
+                                            min: 6.75,
+                                            max: 30,
+                                        },
+                                    }}
+                                    sx={fieldSx}
+                                />
+                                <TextField
+                                    fullWidth
+                                    type="number"
+                                    size="small"
+                                    label="Width (inches)"
+                                    value={Number(
+                                        sceneUnitsToInches(
+                                            selected.width || 0.65,
+                                        ).toFixed(2),
+                                    )}
+                                    onChange={(event) => {
+                                        const inches = Number(
+                                            event.target.value,
+                                        );
+                                        if (
+                                            Number.isFinite(inches) &&
+                                            inches >= 1.35
+                                        )
+                                            onUpdate(selected.id, {
+                                                width: inchesToSceneUnits(
+                                                    inches,
+                                                ),
+                                            });
+                                    }}
+                                    slotProps={{
+                                        htmlInput: {
+                                            step: 0.25,
+                                            min: 1.35,
+                                            max: 15,
+                                        },
+                                    }}
+                                    sx={fieldSx}
+                                />
+                            </Stack>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: "block",
+                                    mt: 0.75,
+                                    color: "rgba(255,255,255,.62)",
+                                }}
+                            >
+                                Length controls the span; width controls how far
+                                the oval curves into the playfield.
+                            </Typography>
+                        </Box>
+                    )}
 
                     {selected.logic && (
                         <Box

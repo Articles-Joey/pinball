@@ -12,6 +12,9 @@ const ALLOWED_TYPES = new Set([
     "slingshot",
     "gutterFlap",
     "flipper",
+    "cornerTriangle",
+    "topArch",
+    "wall",
 ]);
 const ID_PATTERN = /^[a-z0-9-]{1,80}$/;
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
@@ -26,6 +29,13 @@ function vector(value, name) {
         throw new Error(`${name} contains an invalid value`);
     }
     return result.map((entry) => Math.round(entry * 10000) / 10000);
+}
+
+function scalar(value, name, minimum, maximum) {
+    const result = Number(value);
+    if (!Number.isFinite(result) || result < minimum || result > maximum)
+        throw new Error(`${name} must be between ${minimum} and ${maximum}`);
+    return Math.round(result * 10000) / 10000;
 }
 
 function normalizeObject(object) {
@@ -43,6 +53,26 @@ function normalizeObject(object) {
         position: vector(object.position, `${object.id}.position`),
         rotation: vector(object.rotation, `${object.id}.rotation`),
     };
+
+    if (object.type === "wall") {
+        result.length = scalar(object.length, `${object.id}.length`, 0.15, 10);
+        result.width = scalar(
+            object.width ?? 0.055,
+            `${object.id}.width`,
+            0.015,
+            0.3,
+        );
+        result.height = scalar(
+            object.height ?? 0.24,
+            `${object.id}.height`,
+            0.05,
+            0.8,
+        );
+    }
+    if (object.type === "topArch") {
+        result.length = scalar(object.length, `${object.id}.length`, 0.9, 4);
+        result.width = scalar(object.width, `${object.id}.width`, 0.18, 2);
+    }
 
     if (object.color !== undefined) {
         if (!COLOR_PATTERN.test(object.color))
