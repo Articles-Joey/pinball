@@ -13,7 +13,7 @@ import GlobalClientModals from "@articles-media/articles-dev-box/GlobalClientMod
 import HotkeyHandler from "@articles-media/articles-dev-box/HotkeyHandler";
 import { useHotkeys } from "react-hotkeys-hook";
 
-export default function LayoutClient({}) {
+export default function LayoutClient() {
     const darkMode = useStore((state) => state?.darkMode);
 
     return (

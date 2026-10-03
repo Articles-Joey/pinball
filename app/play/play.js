@@ -1,27 +1,40 @@
 "use client";
-import { Suspense, useEffect, useMemo, useState } from "react";
+
 import dynamic from "next/dynamic";
+import Box from "@mui/material/Box";
+import ButtonBase from "@mui/material/ButtonBase";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import useFullscreen from "@articles-media/articles-dev-box/useFullscreen";
 import GameMenu from "@articles-media/articles-dev-box/GameMenu";
 import { useStore } from "@/hooks/useStore";
 import useTouchControlsStore from "@/hooks/useTouchControlsStore";
-import classNames from "classnames";
 import GameMenuContent from "@/components/UI/GameMenuContent";
 import { usePinballGameStore } from "@/hooks/usePinballGameStore";
 
-const GameCanvas = dynamic(() => import("@/components/Game/GameCanvas"), {
-    ssr: false,
-});
+const GameCanvas = dynamic(() => import("@/components/Game/GameCanvas"), { ssr: false });
+const TouchControls = dynamic(() => import("@/components/UI/TouchControls"), { ssr: false });
+const controlSx = {
+    m: "0.75rem",
+    width: 100,
+    height: 100,
+    bgcolor: "rgba(0,0,0,0.25)",
+    color: "#fff",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    userSelect: "none",
+    touchAction: "none",
+    "& .MuiSvgIcon-root": { fontSize: "2rem" },
+};
 
-export default function UsaPinballGamePage(props) {
+export default function UsaPinballGamePage() {
     const showMenu = useStore((state) => state.showMenu);
     const sceneKey = useStore((state) => state.sceneKey);
     const sidebar = useStore((state) => state.sidebar);
-
-    const touchControlsEnabled = useTouchControlsStore(
-        (state) => state.enabled,
-    );
-
+    const { isFullscreen } = useFullscreen();
+    const touchControlsEnabled = useTouchControlsStore((state) => state.enabled);
     const ballsLeft = usePinballGameStore((state) => state.ballsLeft);
     const score = usePinballGameStore((state) => state.score);
     const leftPaddle = usePinballGameStore((state) => state.leftPaddle);
@@ -30,85 +43,67 @@ export default function UsaPinballGamePage(props) {
     const setRightPaddle = usePinballGameStore((state) => state.setRightPaddle);
     const setSpring = usePinballGameStore((state) => state.setSpring);
 
+    const holdProps = (setPressed) => ({
+        onPointerDown: (event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setPressed(true);
+        },
+        onPointerUp: () => setPressed(false),
+        onPointerCancel: () => setPressed(false),
+        onLostPointerCapture: () => setPressed(false),
+        onKeyDown: (event) => {
+            if (event.key === " " || event.key === "Enter") {
+                event.preventDefault();
+                setPressed(true);
+            }
+        },
+        onKeyUp: (event) => {
+            if (event.key === " " || event.key === "Enter") setPressed(false);
+        },
+        onBlur: () => setPressed(false),
+    });
+
     return (
-        <div
-            className={classNames(`game-page`, {
-                "menu-open": showMenu,
-                fullscreen: useFullscreen().isFullscreen,
-                "show-sidebar": sidebar,
-            })}
-            id={`${process.env.NEXT_PUBLIC_GAME_KEY}-game-page`}
+        <Box
+            className={["game-page", showMenu && "menu-open", isFullscreen && "fullscreen", sidebar && "show-sidebar"].filter(Boolean).join(" ")}
+            id={process.env.NEXT_PUBLIC_GAME_KEY + "-game-page"}
+            sx={{
+                position: "relative",
+                flexGrow: 1,
+                display: "flex",
+                justifyContent: "center",
+                flexDirection: "column",
+                minHeight: "100vh",
+                "--top-position": "0px",
+                "@media (min-width: 992px)": { flexDirection: "row", alignItems: "center" },
+            }}
         >
             <GameMenu
                 useStore={useStore}
                 LeftPanelContent={GameMenuContent}
-                menuBarConfig={{
-                    style: "Bar",
-                    menuBarButtonPosition: "Left",
-                }}
-                sidebarConfig={{
-                    style: "Floating Panel",
-                }}
+                menuBarConfig={{ style: "Bar", menuBarButtonPosition: "Left" }}
+                sidebarConfig={{ style: "Floating Panel" }}
             />
-
-            <div className="game-content">
+            <Box sx={{ zIndex: 0, width: "100%", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", position: "relative", height: "calc(100vh - var(--top-position))", mr: "1rem" }}>
                 {touchControlsEnabled && <TouchControls />}
-
-                <div
-                    className="canvas-three-wrap"
-                    id={`usa-pinball-game`}
-                >
-                    <div className="floating-controls">
-                        <div
-                            className="noselect left-bumper"
-                            active={leftPaddle}
-                            onMouseDown={() => setLeftPaddle(true)} // Set paddle state to true
-                            onMouseUp={() => setLeftPaddle(false)} // Reset paddle state to false
-                            onTouchStart={() => setLeftPaddle(true)} // Handle touch for mobile
-                            onTouchEnd={() => setLeftPaddle(false)} // Handle touch for mobile
-                        >
-                            <i className="fad fa-hand-point-left me-0"></i>
-                        </div>
-
-                        <div
-                            className="launch"
-                            onMouseDown={() => setSpring(true)} // Set paddle state to true
-                            onMouseUp={() => setSpring(false)} // Reset paddle state to false
-                            onTouchStart={() => setSpring(true)} // Handle touch for mobile
-                            onTouchEnd={() => setSpring(false)} // Handle touch for mobile
-                        >
-                            <i className="fad fa-rocket me-0"></i>
-                        </div>
-
-                        <div
-                            className="noselect right-bumper"
-                            active={rightPaddle}
-                            onMouseDown={() => setRightPaddle(true)} // Set paddle state to true
-                            onMouseUp={() => setRightPaddle(false)} // Reset paddle state to false
-                            onTouchStart={() => setRightPaddle(true)} // Handle touch for mobile
-                            onTouchEnd={() => setRightPaddle(false)} // Handle touch for mobile
-                        >
-                            <i className="fad fa-hand-point-right me-0"></i>
-                        </div>
-                    </div>
-
-                    <div className="floating-ui">
-                        <div className="left"></div>
-
-                        <div className="center d-flex bg-black px-1">
-                            <div className="fw-bold">Score: {score}</div>
-                            <div className="px-1">-</div>
-                            <div className="fw-bold">
-                                Balls Left: {ballsLeft}
-                            </div>
-                        </div>
-
-                        <div className="right"></div>
-                    </div>
-
+                <Box id="usa-pinball-game" sx={{ border: "1px solid #000", bgcolor: "#fff", position: "absolute", inset: 0, height: "100%", width: "100%", "& canvas": { height: "100%", width: "100%" } }}>
+                    <Box sx={{ position: "absolute", width: "100%", bottom: 50, zIndex: 2, display: "flex", justifyContent: "space-between", "@media (min-width: 992px)": { display: "none" } }}>
+                        <ButtonBase aria-label="Left paddle" aria-pressed={leftPaddle} sx={controlSx} {...holdProps(setLeftPaddle)}><ArrowBackIcon /></ButtonBase>
+                        <ButtonBase aria-label="Launch ball" sx={controlSx} {...holdProps(setSpring)}><RocketLaunchIcon /></ButtonBase>
+                        <ButtonBase aria-label="Right paddle" aria-pressed={rightPaddle} sx={controlSx} {...holdProps(setRightPaddle)}><ArrowForwardIcon /></ButtonBase>
+                    </Box>
+                    <Box sx={{ position: "absolute", width: "100%", top: 0, zIndex: 2, display: "flex", justifyContent: "space-between", pointerEvents: "none" }}>
+                        <Box sx={{ m: "0.75rem" }} />
+                        <Box sx={{ display: "flex", bgcolor: "#000", color: "#fff", px: "0.25rem" }}>
+                            <Box sx={{ fontWeight: 700 }}>Score: {score}</Box>
+                            <Box sx={{ px: "0.25rem" }}>-</Box>
+                            <Box sx={{ fontWeight: 700 }}>Balls Left: {ballsLeft}</Box>
+                        </Box>
+                        <Box />
+                    </Box>
                     <GameCanvas key={sceneKey} />
-                </div>
-            </div>
-        </div>
+                </Box>
+            </Box>
+        </Box>
     );
 }

@@ -1,145 +1,62 @@
 "use client";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 
-// import axios from 'axios'
-
-// import { useHotkeys } from 'react-hotkeys-hook';
-
-// import GameScoreboard from '@/components/UI/GameScoreboard'
-
-// const Ad = dynamic(() => import('components/Ads/Ad'), {
-//     ssr: false,
-// });
-
-import ArticlesButton from "@/components/UI/Button";
-// import useFullscreen from '@/hooks/useFullScreen';
-import useFullscreen from "@articles-media/articles-dev-box/useFullscreen";
-import Link from "next/link";
-// import routes from '@/components/constants/routes';
-import { usePinballGameStore } from "@/hooks/usePinballGameStore";
-import { format } from "date-fns";
-import { useStore } from "@/hooks/useStore";
-import GameMenuPrimaryButtonGroup from "@articles-media/articles-dev-box/GameMenuPrimaryButtonGroup";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { format } from "date-fns";
+import ArticlesButton from "./Button";
+import GameMenuPrimaryButtonGroup from "@articles-media/articles-dev-box/GameMenuPrimaryButtonGroup";
+import { usePinballGameStore } from "@/hooks/usePinballGameStore";
+import { useStore } from "@/hooks/useStore";
 
-export default function GameMenuContent({}) {
+const cardSx = { mb: "1rem", bgcolor: "game.card", borderRadius: 0, border: 1, borderColor: "divider", boxShadow: "0 0 0 1px rgba(0,0,0,0.25), 0 2px 3px rgba(0,0,0,0.2)" };
+const sectionSx = { p: "0.5rem", borderBottom: 1, borderColor: "divider" };
+
+export default function GameMenuContent() {
     const storeReloadScene = useStore((state) => state.reloadScene);
-
-    const { isFullscreen, requestFullscreen, exitFullscreen } = useFullscreen();
-
-    const reloadScene = () => {
-        // setWinner(false)
-        setScore(0);
-        setBallsLeft(2);
-        storeReloadScene();
-    };
-
     const score = usePinballGameStore((state) => state.score);
     const setScore = usePinballGameStore((state) => state.setScore);
     const ballsLeft = usePinballGameStore((state) => state.ballsLeft);
     const setBallsLeft = usePinballGameStore((state) => state.setBallsLeft);
     const recentGames = usePinballGameStore((state) => state.recentGames);
     const setRecentGames = usePinballGameStore((state) => state.setRecentGames);
+    const personalBest = useMemo(() => (recentGames || []).slice().sort((a, b) => b.score - a.score).slice(0, 5), [recentGames]);
+    const mostRecentGames = useMemo(() => (recentGames || []).slice(-5).sort((a, b) => b.date - a.date), [recentGames]);
 
-    const setShowSettingsModal = useStore(
-        (state) => state.setShowSettingsModal,
-    );
-
-    const personalBest = useMemo(() => {
-        if (!recentGames || !recentGames.length) return []; // Handle empty or undefined arrays
-
-        return recentGames
-            .slice() // Create a copy to avoid mutating the original array
-            .sort((a, b) => b.score - a.score) // Sort scores in descending order
-            .slice(0, 5); // Get the top 5 scores
-    }, [recentGames]);
-
-    const mostRecentGames = useMemo(() => {
-        if (!recentGames || !recentGames.length) return []; // Handle empty or undefined arrays
-
-        return recentGames
-            .slice() // Create a copy to avoid mutating the original array
-            .slice(-5) // Get the top 5 scores
-            .sort((a, b) => b.date - a.date);
-    }, [recentGames]);
+    const reloadScene = () => {
+        setScore(0);
+        setBallsLeft(2);
+        storeReloadScene();
+    };
 
     return (
-        <div className="menu-card-content">
-            <div className="d-flex flex-wrap mb-3">
-                <GameMenuPrimaryButtonGroup
-                    useStore={useStore}
-                    type="GameMenu"
-                    useRouter={useRouter}
-                />
-            </div>
-
-            <div className="card card-articles mb-3">
-                <div className="card-header p-2">Balls Left: {ballsLeft}</div>
-                <div className="card-body p-2">Current Score: {score}</div>
-                <div className="card-footer">
-                    <ArticlesButton
-                        small
-                        className="w-100"
-                        onClick={reloadScene}
-                    >
-                        <i className="fad fa-redo"></i>
-                        Reset Game
-                    </ArticlesButton>
-                </div>
-            </div>
-
-            <div className="card card-articles mb-3">
-                <div className="card-header p-2">Personal Scores</div>
-                <div className="card-body p-2  text-center border-bottom">
-                    <div className="small">
-                        Most Recent Games - {recentGames?.length || 0}
-                    </div>
-                    <div>
-                        {mostRecentGames.map((game, game_i) => {
-                            return (
-                                <div
-                                    key={game_i}
-                                    className="small"
-                                >
-                                    {/* <span>{game.machine}</span><span> - </span> */}
-                                    {game.score} -{" "}
-                                    {format(game.date, "MM/dd/yy hh:mmaa")}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div className="card-body p-2 text-center">
-                    <div className="small">Personal Best</div>
-                    <div>
-                        {personalBest.map((game, game_i) => {
-                            return (
-                                <div
-                                    key={game_i}
-                                    className="small"
-                                >
-                                    {/* <span>{game.machine}</span><span> - </span> */}
-                                    {game.score} -{" "}
-                                    {format(game.date, "MM/dd/yy hh:mmaa")}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div className="card-footer">
-                    <ArticlesButton
-                        small
-                        className="w-100"
-                        onClick={() => {
-                            setRecentGames([]);
-                        }}
-                    >
-                        <i className="fad fa-redo"></i>
-                        Reset Scores
-                    </ArticlesButton>
-                </div>
-            </div>
-        </div>
+        <Box sx={{ width: "100%" }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", mb: "1rem" }}>
+                <GameMenuPrimaryButtonGroup useStore={useStore} type="GameMenu" useRouter={useRouter} />
+            </Box>
+            <Card sx={cardSx}>
+                <Box sx={sectionSx}>Balls Left: {ballsLeft}</Box>
+                <Box sx={sectionSx}>Current Score: {score}</Box>
+                <Box sx={{ p: "0.5rem" }}>
+                    <ArticlesButton small sx={{ width: "100%" }} onClick={reloadScene} startIcon={<RestartAltIcon />}>Reset Game</ArticlesButton>
+                </Box>
+            </Card>
+            <Card sx={cardSx}>
+                <Box sx={sectionSx}>Personal Scores</Box>
+                <Box sx={{ ...sectionSx, textAlign: "center" }}>
+                    <Box sx={{ fontSize: "0.875em" }}>Most Recent Games - {recentGames?.length || 0}</Box>
+                    {mostRecentGames.map((game, i) => <Box key={i} sx={{ fontSize: "0.875em" }}>{game.score} - {format(game.date, "MM/dd/yy hh:mmaa")}</Box>)}
+                </Box>
+                <Box sx={{ ...sectionSx, textAlign: "center" }}>
+                    <Box sx={{ fontSize: "0.875em" }}>Personal Best</Box>
+                    {personalBest.map((game, i) => <Box key={i} sx={{ fontSize: "0.875em" }}>{game.score} - {format(game.date, "MM/dd/yy hh:mmaa")}</Box>)}
+                </Box>
+                <Box sx={{ p: "0.5rem" }}>
+                    <ArticlesButton small sx={{ width: "100%" }} onClick={() => setRecentGames([])} startIcon={<RestartAltIcon />}>Reset Scores</ArticlesButton>
+                </Box>
+            </Card>
+        </Box>
     );
 }

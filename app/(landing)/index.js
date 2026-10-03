@@ -1,329 +1,152 @@
 "use client";
-import { lazy, useEffect, useMemo, useState } from "react";
+
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
-
-// import axios from 'axios'
-// import ROUTES from '@/components/constants/routes';
-// import { useHotkeys } from 'react-hotkeys-hook';
-
-// import GameScoreboard from 'components/Games/GameScoreboard'
-// const GameScoreboard = dynamic(() => import('@/components/UI/GameScoreboard'), {
-//     ssr: false,
-// });
-
-// const Ad = dynamic(() => import('components/Ads/Ad'), {
-//     ssr: false,
-// });
-
-import ArticlesButton from "@/components/UI/Button";
-// import useFullscreen from '@/hooks/useFullScreen';
-import useFullscreen from "@articles-media/articles-dev-box/useFullscreen";
 import Link from "next/link";
-// import SingleInput from '@/components/Articles/SingleInput';
-import { useLocalStorageNew } from "@/hooks/useLocalStorageNew";
-// import { useSelector } from 'react-redux';
+import { useRouter } from "next/navigation";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Typography from "@mui/material/Typography";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import WallpaperIcon from "@mui/icons-material/Wallpaper";
+import ArticlesButton from "@/components/UI/Button";
+import useFullscreen from "@articles-media/articles-dev-box/useFullscreen";
+import GameMenuPrimaryButtonGroup from "@articles-media/articles-dev-box/GameMenuPrimaryButtonGroup";
 import { usePinballGameStore } from "@/hooks/usePinballGameStore";
-import MachinePreviewCanvas from "@/components/Game/MachinePreviewCanvas";
 import { useStore } from "@/hooks/useStore";
 
-import NicknameInput from "@articles-media/articles-dev-box/NicknameInput";
-import GameMenuPrimaryButtonGroup from "@articles-media/articles-dev-box/GameMenuPrimaryButtonGroup";
-
-const GameScoreboard = dynamic(
-    () => import("@articles-media/articles-dev-box/GameScoreboard"),
-    { ssr: false },
-);
-const Ad = dynamic(() => import("@articles-media/articles-dev-box/Ad"), {
-    ssr: false,
-});
-
+const MachinePreviewCanvas = dynamic(() => import("@/components/Game/MachinePreviewCanvas"), { ssr: false });
+const LandingSceneCanvas = dynamic(() => import("@/components/Game/LandingSceneCanvas"), { ssr: false });
 const ReturnToLauncherButton = dynamic(
     () => import("@articles-media/articles-dev-box/ReturnToLauncherButton"),
     { ssr: false },
 );
 
-// import LandingSceneCanvas from '@/components/Game/LandingSceneCanvas';
-const LandingSceneCanvas = lazy(
-    () => import("@/components/Game/LandingSceneCanvas"),
-);
-// const LandingSceneCanvas = dynamic(
-//     () => import('@/components/Game/LandingSceneCanvas'),
-//     { ssr: false }
-// )
-
 const pinballMachines = [
-    {
-        name: "USA Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/usa-pinball-thumbnail.jpg`,
-    },
-    {
-        name: "Space Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/space-pinball-thumbnail.webp`,
-    },
-    {
-        name: "H3H3 Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/h3-pinball-thumbnail.jpg`,
-        machine_preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/h3h3-pinball-machine-preview.jpg`,
-    },
-    {
-        name: "Articles Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/articles-pinball-thumbnail.webp`,
-        locked: true,
-    },
-    {
-        name: "Nature Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/nature-pinball-thumbnail.webp`,
-        locked: true,
-    },
-    {
-        name: "Ocean Pinball",
-        preview: `${process.env.NEXT_PUBLIC_CDN}games/Pinball/ocean-pinball-thumbnail.webp`,
-        locked: true,
-    },
+    { name: "USA Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/usa-pinball-thumbnail.jpg" },
+    { name: "Space Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/space-pinball-thumbnail.webp" },
+    { name: "H3H3 Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/h3-pinball-thumbnail.jpg" },
+    { name: "Articles Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/articles-pinball-thumbnail.webp", locked: true },
+    { name: "Nature Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/nature-pinball-thumbnail.webp", locked: true },
+    { name: "Ocean Pinball", preview: process.env.NEXT_PUBLIC_CDN + "games/Pinball/ocean-pinball-thumbnail.webp", locked: true },
 ];
 
-export default function PinballLandingPage(props) {
+const desktop = "@media (min-width: 992px)";
+const cardSx = {
+    display: "flex",
+    flexDirection: "column",
+    bgcolor: "game.card",
+    borderRadius: 0,
+    border: "1px solid",
+    borderColor: "divider",
+    boxShadow: "0 0 0 1px rgba(0,0,0,0.25), 0 2px 3px rgba(0,0,0,0.2)",
+};
+const headerSx = { display: "flex", alignItems: "center", p: "0.5rem", borderBottom: 1, borderColor: "divider", fontSize: "0.85rem" };
+const footerSx = { display: "flex", flexWrap: "wrap", justifyContent: "center", p: "0.5rem", borderTop: 1, borderColor: "divider" };
+
+export default function PinballLandingPage() {
     const machine = usePinballGameStore((state) => state.machine);
     const setMachine = usePinballGameStore((state) => state.setMachine);
-
-    const { isFullscreen, requestFullscreen, exitFullscreen } = useFullscreen();
-
+    const { isFullscreen, requestFullscreen } = useFullscreen();
     const landingAnimation = useStore((state) => state.landingAnimation);
 
     return (
-        <div
-            className={`landing-page ${isFullscreen ? "fullscreen" : ""}`}
+        <Box
             id="pinball-landing-page"
+            sx={{
+                position: "relative",
+                isolation: "isolate",
+                flexGrow: 1,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+                minHeight: "100vh",
+                [desktop]: { flexDirection: "row" },
+            }}
         >
             {landingAnimation && (
-                <div className="landing-scene-canvas-wrapper">
-                    <LandingSceneCanvas />
-                </div>
+                <Box sx={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: -1 }}>
+                    <Suspense fallback={null}><LandingSceneCanvas /></Suspense>
+                </Box>
             )}
-
-            <img
-                src={`${process.env.NEXT_PUBLIC_CDN}games/Pinball/pinball-landing-background.webp`}
+            <Box
+                component="img"
+                src={process.env.NEXT_PUBLIC_CDN + "games/Pinball/pinball-landing-background.webp"}
                 alt=""
-                className="background"
+                sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: -3 }}
             />
+            <Box sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0,0,0,0.75)", zIndex: -2 }} />
+            <Box
+                sx={{
+                    display: isFullscreen ? "none" : "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    p: "1rem",
+                    width: "100%",
+                    [desktop]: { flexDirection: "row", width: "auto", alignItems: "stretch" },
+                }}
+            >
+                <Card sx={{
+                    ...cardSx,
+                    width: "100%",
+                    height: "calc(40vh - 1rem)",
+                    mb: "0.25rem",
+                    [desktop]: { width: "30rem", mb: 0, ml: "1rem", height: "calc(60vh - 1.25rem)" },
+                }}>
+                    <Box sx={headerSx}>Machine preview</Box>
+                    <Box sx={{ flexGrow: 1, minHeight: 0, position: "relative" }}>
+                        <Box sx={{ position: "absolute", inset: 0, bgcolor: "#000", p: "0.5rem", "& canvas": { width: "100% !important", height: "100% !important" } }}>
+                            <MachinePreviewCanvas key={machine} />
+                        </Box>
+                    </Box>
+                    <Box sx={footerSx}>
+                        <ArticlesButton
+                            component={Link}
+                            href={{ pathname: "/play", query: { machine } }}
+                            sx={{ width: "100%" }}
+                            small
+                            disabled={machine !== "USA Pinball"}
+                        >
+                            Play
+                        </ArticlesButton>
+                    </Box>
+                </Card>
 
-            <div className="background-overlay"></div>
-
-            <div className="">
-                <div className="ui-content">
-                    <div className="machine-preview card card-articles card-sm">
-                        <div className="card-header d-flex align-items-center">
-                            <span>Machine preview</span>
-
-                            {/* <div className="flex-grow-1">
-    
-                                <div className="form-group articles mb-0">
-                                    <label htmlFor="nickname">Nickname</label>
-                                    <SingleInput
-                                        value={nickname}
-                                        setValue={setNickname}
-                                        noMargin
-                                    />
-                                </div>
-    
-                                <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
-    
-                            </div> */}
-                        </div>
-
-                        <div className="card-body h-100 position-relative">
-                            <div className="machine-preview-canvas-container bg-black p-2">
-                                <MachinePreviewCanvas key={machine} />
-
-                                {/* {activeMachine?.machine_preview &&
-                                    <img
-                                        src={activeMachine.machine_preview}
-                                        style={{ objectFit: 'cover' }}
-                                        className='w-100 h-100'
-                                        alt=""
-                                    />
-                                } */}
-                            </div>
-                        </div>
-
-                        <div className="card-footer d-flex flex-wrap justify-content-center">
-                            <Link
-                                className={`w-100`}
-                                href={{
-                                    pathname: `/play`,
-                                    query: {
-                                        machine: machine,
-                                    },
-                                }}
-                            >
-                                <ArticlesButton
-                                    className="w-100"
-                                    small
-                                    disabled={machine !== "USA Pinball"}
-                                >
-                                    Play
-                                </ArticlesButton>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="machine-selection card card-articles card-sm">
-                        {/* <div style={{ position: 'relative', height: '200px' }}>
-                            <Image
-                                src={Logo}
-                                alt=""
-                                fill
-                                style={{ objectFit: 'cover' }}
-                            />
-                        </div> */}
-
-                        <div className="card-header d-flex align-items-center">
-                            <span>Select a machine to continue</span>
-
-                            {/* <div className="flex-grow-1">
-    
-                                <div className="form-group articles mb-0">
-                                    <label htmlFor="nickname">Nickname</label>
-                                    <SingleInput
-                                        value={nickname}
-                                        setValue={setNickname}
-                                        noMargin
-                                    />
-                                </div>
-    
-                                <div className='mt-1' style={{ fontSize: '0.8rem' }}>Visible to all players</div>
-    
-                            </div> */}
-                        </div>
-
-                        <div className="card-body">
-                            <div className="machines">
-                                {pinballMachines.map((obj) => {
-                                    // return
-
-                                    // let lobbyLookup = lobbyDetails?.fourFrogsGlobalState?.games?.find(lobby =>
-                                    //     parseInt(lobby.server_id) == id
-                                    // )
-
-                                    return (
-                                        <div
-                                            key={obj.name}
-                                            className="machine"
-                                        >
-                                            {/* <div className='d-flex justify-content-between align-items-center w-100 mb-2'>
-                                                <div className="mb-0" style={{ fontSize: '0.9rem' }}><b>Server {id}</b></div>
-                                                <div className='mb-0'>{lobbyLookup?.players?.length || 0}/4</div>
-                                            </div>
-    
-                                            <div className='d-flex justify-content-around w-100 mb-1'>
-                                                {[1, 2, 3, 4].map(player_count => {
-    
-                                                    let playerLookup = false
-    
-                                                    if (lobbyLookup?.players?.length >= player_count) playerLookup = true
-    
-                                                    return (
-                                                        <div key={player_count} className="icon" style={{
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            ...(playerLookup ? {
-                                                                backgroundColor: 'black',
-                                                            } : {
-                                                                backgroundColor: 'gray',
-                                                            }),
-                                                            border: '1px solid black'
-                                                        }}>
-    
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div> */}
-
-                                            <div className="ratio ratio-1x1 bg-black mb-2">
-                                                {obj.preview && (
-                                                    <img
-                                                        src={obj.preview}
-                                                        style={{
-                                                            objectFit: "cover",
-                                                        }}
-                                                        className="w-100 h-100"
-                                                        alt=""
-                                                    />
-                                                )}
-                                            </div>
-
-                                            <div className="mb-2">
-                                                {obj.name}
-                                            </div>
-
-                                            <div className="d-flex w-100">
-                                                <ArticlesButton
-                                                    className="w-100 flex-grow-1"
-                                                    small
-                                                    active={obj.name == machine}
-                                                    // disabled={obj.name !== "USA Pinball"}
-                                                    onClick={() => {
-                                                        setMachine(obj.name);
-                                                    }}
-                                                >
-                                                    Select
-                                                </ArticlesButton>
-
-                                                <Link
-                                                    className={`w-100`}
-                                                    href={{
-                                                        pathname: `/play`,
-                                                    }}
-                                                >
-                                                    <ArticlesButton
-                                                        className="w-100"
-                                                        small
-                                                        // disabled={
-                                                        //     obj.locked
-                                                        // }
-                                                        onClick={() => {
-                                                            setMachine(
-                                                                obj.name,
-                                                            );
-                                                        }}
-                                                    >
-                                                        <i className="fad fa-play"></i>
-                                                        <span>Play</span>
-                                                    </ArticlesButton>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="card-footer d-flex flex-wrap justify-content-center">
-                            <GameMenuPrimaryButtonGroup
-                                useStore={useStore}
-                                type="Landing"
-                            />
-
-                            <div className="d-flex mt-3 w-100">
-                                <div className="w-50">
-                                    <ReturnToLauncherButton />
-                                </div>
-
-                                <ArticlesButton
-                                    className={`w-50`}
-                                    small
-                                    onClick={() => {
-                                        requestFullscreen();
-                                    }}
-                                >
-                                    <i className="fad fa-eye-dropper"></i>
-                                    Wallpaper Mode
-                                </ArticlesButton>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <Card sx={{
+                    ...cardSx,
+                    width: "100%",
+                    height: "calc(60vh - 1.25rem)",
+                    [desktop]: { width: "30rem", mb: 0, mr: "1rem" },
+                }}>
+                    <Box sx={headerSx}>Select a machine to continue</Box>
+                    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
+                        <Box sx={{ display: "grid", gap: "5px", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", height: "auto", overflowY: "auto", [desktop]: { gridTemplateColumns: "repeat(3, minmax(0, 1fr))" } }}>
+                            {pinballMachines.map((obj) => (
+                                <Box key={obj.name} sx={{ p: "0.5rem", border: "1px solid rgba(0,0,0,0.25)", display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.85rem", minWidth: 0 }}>
+                                    <Box sx={{ aspectRatio: "1", width: "100%", bgcolor: "#000", mb: "0.5rem" }}>
+                                        {obj.preview && <Box component="img" src={obj.preview} alt={obj.name} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
+                                    </Box>
+                                    <Typography sx={{ mb: "0.5rem", fontSize: "inherit" }}>{obj.name}</Typography>
+                                    <Box sx={{ display: "flex", width: "100%" }}>
+                                        <ArticlesButton small active={obj.name === machine} sx={{ width: "100%", flexGrow: 1 }} onClick={() => setMachine(obj.name)}>Select</ArticlesButton>
+                                        <ArticlesButton component={Link} href="/play" small sx={{ width: "100%" }} onClick={() => setMachine(obj.name)} startIcon={<PlayArrowIcon />}>Play</ArticlesButton>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                    <Box sx={footerSx}>
+                        <GameMenuPrimaryButtonGroup useStore={useStore} type="Landing" useRouter={useRouter} />
+                        <Box sx={{ display: "flex", mt: "1rem", width: "100%" }}>
+                            <Box sx={{ width: "50%" }}><ReturnToLauncherButton /></Box>
+                            <ArticlesButton small sx={{ width: "50%" }} onClick={() => requestFullscreen()} startIcon={<WallpaperIcon />}>Wallpaper Mode</ArticlesButton>
+                        </Box>
+                    </Box>
+                </Card>
+            </Box>
+        </Box>
     );
 }
+

@@ -5,6 +5,7 @@ import { useSocketStore } from "@/hooks/useSocketStore";
 import { useStore } from "@/hooks/useStore";
 import useTouchControlsStore from "@/hooks/useTouchControlsStore";
 import dynamic from "next/dynamic";
+import packageInfo from "@/package.json";
 
 const InfoModal = dynamic(() => import("@/components/UI/InfoModal"), {
     ssr: false,
@@ -45,7 +46,7 @@ export default function GlobalClientModals() {
                 <SettingsModal
                     show={showSettingsModal}
                     setShow={setShowSettingsModal}
-                    store={useStore}
+                    useStore={useStore}
                     useAudioStore={useAudioStore}
                     useTouchControlsStore={useTouchControlsStore}
                     useSocketStore={useSocketStore}
@@ -58,11 +59,11 @@ export default function GlobalClientModals() {
                             Audio: {
                                 sliders: [
                                     {
-                                        key: "gameVolume",
+                                        key: "game_volume",
                                         label: "Game Volume",
                                     },
                                     {
-                                        key: "musicVolume",
+                                        key: "music_volume",
                                         label: "Music Volume",
                                     },
                                 ],
@@ -91,6 +92,7 @@ export default function GlobalClientModals() {
                 <CreditsModal
                     show={showCreditsModal}
                     setShow={setShowCreditsModal}
+                    packageInfo={packageInfo}
                 />
             )}
         </>

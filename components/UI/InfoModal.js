@@ -1,66 +1,12 @@
-import { useEffect, useState } from "react";
+"use client";
 
-import Image from "next/image";
-import dynamic from "next/dynamic";
+import Box from "@mui/material/Box";
+import ArticlesModal from "./ArticlesModal";
 
-// import { useSelector } from 'react-redux'
-
-import { Modal } from "react-bootstrap";
-
-import IsDev from "@/components/UI/IsDev";
-import ArticlesButton from "./Button";
-
-export default function GameInfoModal({ show, setShow, credits }) {
-    const [showModal, setShowModal] = useState(true);
-
+export default function GameInfoModal({ show, setShow }) {
     return (
-        <>
-            {/* {lightboxData && (
-                <Lightbox
-                    mainSrc={lightboxData?.location}
-                    onCloseRequest={() => setLightboxData(null)}
-                    reactModalStyle={{
-                        overlay: {
-                            zIndex: '2000'
-                        }
-                    }}
-                />
-            )} */}
-
-            <Modal
-                className="articles-modal games-info-modal"
-                size="md"
-                show={showModal}
-                centered
-                scrollable
-                onExited={() => {
-                    setShow(false);
-                }}
-                onHide={() => {
-                    setShowModal(false);
-                }}
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>Game Info</Modal.Title>
-                </Modal.Header>
-
-                <Modal.Body className="flex-column p-0">
-                    <div className="p-3"></div>
-                </Modal.Body>
-
-                <Modal.Footer className="justify-content-between">
-                    <div></div>
-
-                    <ArticlesButton
-                        variant="outline-dark"
-                        onClick={() => {
-                            setShow(false);
-                        }}
-                    >
-                        Close
-                    </ArticlesButton>
-                </Modal.Footer>
-            </Modal>
-        </>
+        <ArticlesModal show={show} setShow={setShow} title="Game Info" contentSx={{ p: 0 }}>
+            <Box sx={{ p: "1rem" }} />
+        </ArticlesModal>
     );
 }

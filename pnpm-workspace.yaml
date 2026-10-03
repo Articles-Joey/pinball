@@ -1,3 +1,5 @@
 allowBuilds:
-    "@parcel/watcher": false
-    unrs-resolver: false
+  '@parcel/watcher': false
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - '@articles-media/articles-dev-box@2.0.0'
